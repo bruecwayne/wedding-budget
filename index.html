@@ -891,6 +891,7 @@ const CATS = [
   { id:'transport',     name:'Transportation',         icon:'🚗',  color:'#8EA88E' },
   { id:'favors',        name:'Favors & Gifts',         icon:'🎁',  color:'#C4A882' },
   { id:'beauty',        name:'Hair & Makeup',          icon:'✨',  color:'#C8A0B8' },
+  { id:'accommodation', name:'Accommodation',            icon:'🏨',  color:'#7E9EBA' },
   { id:'other',         name:'Other',                  icon:'📦',  color:'#A0A0A0' },
 ];
 
@@ -1215,7 +1216,8 @@ if (!S.items.length) {
     { catId:'honeymoon',    name:'Resort Stay',                  vendor:'Sun Siyam Iru Fushi',      estimated:0, actual:0, paid:false, notes:'' },
     { catId:'beauty',       name:'Bridal Hair & Makeup',         vendor:'Meenakshi Dutt Makeovers', estimated:0, actual:0, paid:false, notes:'' },
     { catId:'entertainment',name:'DJ & Sound System',            vendor:'DJ Suketu Events',         estimated:0, actual:0, paid:false, notes:'' },
-    { catId:'ceremony',     name:'Pandit & Ceremony Rituals',    vendor:'Local Purohit',            estimated:0, actual:0, paid:false, notes:'' },
+    { catId:'ceremony',       name:'Pandit & Ceremony Rituals',    vendor:'Local Purohit',            estimated:0, actual:0, paid:false, notes:'' },
+    { catId:'accommodation',  name:'Guest Accommodation',          vendor:'',                         estimated:0, actual:0, paid:false, notes:'' },
   ];
 
   seed.forEach(d => { d.id = uid(); S.items.push(d); });
