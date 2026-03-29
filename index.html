@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forever Budget — Wedding & Engagement Planner</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cream: #FAF6F0;
+  --cream-dark: #EDE4D9;
+  --rose-gold: #C4956A;
+  --rose-gold-light: #D4A882;
+  --rose-dark: #9B6B47;
+  --blush: #E8C4B8;
+  --sage: #8A9E7E;
+  --charcoal: #2C2420;
+  --charcoal-soft: #5A4E48;
+  --gold: #C9A84C;
+  --gold-light: #E8D5A3;
+  --white: #FFFFFF;
+  --error: #C06060;
+  --success: #6B9E78;
+  --warning: #C9A84C;
+  --shadow-sm: 0 2px 10px rgba(44,36,32,0.07);
+  --shadow-md: 0 6px 24px rgba(44,36,32,0.12);
+  --shadow-lg: 0 12px 48px rgba(44,36,32,0.18);
+  --radius: 14px;
+  --radius-sm: 8px;
+  --transition: 0.22s cubic-bezier(0.4,0,0.2,1);
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--cream);
+  color: var(--charcoal);
+  min-height: 100vh;
+}
+
+/* ── HEADER ─────────────────────────────── */
+.header {
+  background: linear-gradient(150deg, #2C2420 0%, #3D3028 50%, #2C2420 100%);
+  padding: 2.5rem 2rem 3.5rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 70% 80% at 15% 60%, rgba(196,149,106,0.18) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 70% at 85% 40%, rgba(138,158,126,0.12) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+/* Decorative botanical SVG corners */
+.header::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cg opacity='0.15' fill='none' stroke='%23C4956A' stroke-width='0.8'%3E%3Cellipse cx='20' cy='20' rx='18' ry='8' transform='rotate(-30 20 20)'/%3E%3Cellipse cx='20' cy='20' rx='18' ry='8' transform='rotate(30 20 20)'/%3E%3Cellipse cx='20' cy='20' rx='18' ry='8' transform='rotate(90 20 20)'/%3E%3Ccircle cx='20' cy='20' r='2' fill='%23C4956A'/%3E%3Cline x1='20' y1='22' x2='20' y2='50' stroke-width='1'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: top left, bottom right;
+  background-size: 120px 120px;
+  pointer-events: none;
+}
+
+.ornament-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  position: relative;
+}
+
+.orn-line {
+  height: 1px;
+  width: 60px;
+  background: linear-gradient(90deg, transparent, var(--rose-gold), transparent);
+}
+
+.orn-diamond {
+  width: 5px;
+  height: 5px;
+  background: var(--rose-gold);
+  transform: rotate(45deg);
+  flex-shrink: 0;
+}
+
+.orn-dot {
+  width: 3px;
+  height: 3px;
+  background: rgba(196,149,106,0.5);
+  border-radius: 50%;
+}
+
+h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(2.8rem, 7vw, 4.5rem);
+  font-weight: 300;
+  color: var(--cream);
+  letter-spacing: 0.06em;
+  line-height: 1.05;
+  position: relative;
+}
+
+h1 em {
+  font-style: italic;
+  color: var(--rose-gold-light);
+}
+
+.header-sub {
+  font-size: 0.72rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: rgba(250,246,240,0.45);
+  margin-top: 0.6rem;
+  font-weight: 300;
+  position: relative;
+}
+
+/* ── BUDGET BAR ─────────────────────────── */
+.budget-bar {
+  background: var(--white);
+  border-bottom: 1px solid var(--cream-dark);
+  padding: 1.1rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.budget-bar label {
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--charcoal-soft);
+  font-weight: 500;
+}
+
+.budget-bar-symbol {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.4rem;
+  color: var(--rose-gold);
+  line-height: 1;
+}
+
+#totalBudget {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.6rem;
+  font-weight: 500;
+  color: var(--charcoal);
+  border: none;
+  border-bottom: 2px solid var(--rose-gold);
+  padding: 0.15rem 0.5rem;
+  background: transparent;
+  width: 140px;
+  text-align: center;
+  outline: none;
+  transition: border-color var(--transition);
+}
+
+#totalBudget:focus { border-color: var(--gold); }
+
+/* ── CONTAINER ──────────────────────────── */
+.container {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 5rem;
+}
+
+/* ── SUMMARY CARDS ──────────────────────── */
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+@media (max-width: 760px) {
+  .summary-grid { grid-template-columns: 1fr 1fr; }
+}
+
+.summary-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 1.4rem 1.25rem;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--cream-dark);
+  position: relative;
+  overflow: hidden;
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+
+.summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.summary-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--card-accent, var(--rose-gold));
+  border-radius: 3px 3px 0 0;
+}
+
+.summary-card.c-budget   { --card-accent: var(--charcoal); }
+.summary-card.c-est      { --card-accent: var(--sage); }
+.summary-card.c-act      { --card-accent: var(--rose-gold); }
+.summary-card.c-bal-ok   { --card-accent: var(--success); }
+.summary-card.c-bal-over { --card-accent: var(--error); }
+
+.s-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--charcoal-soft);
+  opacity: 0.65;
+  margin-bottom: 0.45rem;
+}
+
+.s-value {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2rem;
+  font-weight: 500;
+  color: var(--charcoal);
+  line-height: 1;
+}
+
+.s-value.neg { color: var(--error); }
+.s-value.pos { color: var(--success); }
+
+.s-sub {
+  font-size: 0.72rem;
+  color: var(--charcoal-soft);
+  opacity: 0.55;
+  margin-top: 0.35rem;
+}
+
+/* ── OVERALL PROGRESS ───────────────────── */
+.progress-section {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.5rem;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--cream-dark);
+  margin-bottom: 2rem;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.7rem;
+}
+
+.progress-label {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.05rem;
+  font-style: italic;
+  color: var(--charcoal-soft);
+}
+
+.progress-pct {
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  color: var(--charcoal-soft);
+  opacity: 0.7;
+}
+
+.p-track {
+  height: 7px;
+  background: var(--cream-dark);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.p-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--sage) 0%, var(--rose-gold) 100%);
+  transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+}
+
+.p-fill.over-budget {
+  background: linear-gradient(90deg, var(--rose-gold) 0%, var(--error) 100%);
+}
+
+/* ── SECTION HEADER ─────────────────────── */
+.section-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.section-heading {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.35rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+}
+
+.section-heading em { font-style: italic; color: var(--rose-gold); }
+
+/* ── CATEGORY CARDS ─────────────────────── */
+.cats { display: flex; flex-direction: column; gap: 0.85rem; }
+
+.cat-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--cream-dark);
+  overflow: hidden;
+  transition: box-shadow var(--transition);
+}
+
+.cat-card:hover { box-shadow: var(--shadow-md); }
+
+.cat-head {
+  display: flex;
+  align-items: center;
+  padding: 1rem 1.2rem;
+  cursor: pointer;
+  user-select: none;
+  gap: 0.7rem;
+}
+
+.cat-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.cat-icon { font-size: 1.15rem; width: 1.4rem; text-align: center; }
+
+.cat-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.1rem;
+  font-weight: 500;
+  flex: 1;
+}
+
+.cat-amounts {
+  display: flex;
+  gap: 1.25rem;
+  align-items: center;
+}
+
+.cat-amt {
+  text-align: right;
+}
+
+.cat-amt-label {
+  display: block;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--charcoal-soft);
+  opacity: 0.55;
+}
+
+.cat-amt-val {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.98rem;
+  font-weight: 500;
+}
+
+.cat-amt-val.over-cat { color: var(--error); }
+
+.cat-chevron {
+  font-size: 0.7rem;
+  color: var(--charcoal-soft);
+  opacity: 0.4;
+  transition: transform var(--transition), opacity var(--transition);
+  margin-left: 0.25rem;
+}
+
+.cat-card.open .cat-chevron { transform: rotate(180deg); opacity: 0.65; }
+
+.cat-prog {
+  height: 3px;
+  background: transparent;
+}
+
+.cat-prog-fill {
+  height: 100%;
+  transition: width 0.5s ease;
+}
+
+.cat-body {
+  display: none;
+  padding: 0 1.2rem 1.2rem;
+  animation: bodyReveal 0.18s ease;
+}
+
+.cat-card.open .cat-body { display: block; }
+
+@keyframes bodyReveal {
+  from { opacity: 0; transform: translateY(-5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── ITEMS TABLE ────────────────────────── */
+table.items {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+  margin-bottom: 0.75rem;
+}
+
+table.items th {
+  text-align: left;
+  font-size: 0.62rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--charcoal-soft);
+  opacity: 0.55;
+  padding: 0.45rem 0.7rem;
+  border-bottom: 1px solid var(--cream-dark);
+  font-weight: 500;
+}
+
+table.items td {
+  padding: 0.65rem 0.7rem;
+  border-bottom: 1px solid var(--cream-dark);
+  vertical-align: middle;
+}
+
+table.items tr:last-child td { border-bottom: none; }
+
+table.items tr:hover td { background: rgba(250,246,240,0.7); }
+
+.it-name { font-weight: 500; }
+.it-vendor { font-size: 0.73rem; color: var(--charcoal-soft); opacity: 0.6; margin-top: 1px; }
+
+.it-cost {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.02rem;
+}
+
+.it-cost.over { color: var(--error); }
+.it-cost.under { color: var(--success); }
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.63rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.55rem;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all var(--transition);
+  border: 1px solid;
+  white-space: nowrap;
+}
+
+.badge.paid   { background: rgba(107,158,120,0.1); color: var(--success); border-color: rgba(107,158,120,0.3); }
+.badge.unpaid { background: rgba(201,168,76,0.1);  color: var(--warning); border-color: rgba(201,168,76,0.3); }
+
+.row-actions {
+  display: flex;
+  gap: 0.35rem;
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+
+table.items tr:hover .row-actions { opacity: 1; }
+
+.btn-ic {
+  width: 27px;
+  height: 27px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  color: var(--charcoal-soft);
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+}
+
+.btn-ic:hover { background: var(--cream-dark); }
+.btn-ic.del:hover { background: rgba(192,96,96,0.12); color: var(--error); }
+
+.empty-cat {
+  text-align: center;
+  padding: 1.5rem;
+  font-size: 0.82rem;
+  color: var(--charcoal-soft);
+  opacity: 0.45;
+  letter-spacing: 0.05em;
+}
+
+.btn-add-item {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--rose-gold);
+  background: transparent;
+  border: 1px dashed rgba(196,149,106,0.5);
+  padding: 0.45rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all var(--transition);
+  opacity: 0.75;
+}
+
+.btn-add-item:hover { opacity: 1; background: rgba(196,149,106,0.06); border-color: var(--rose-gold); }
+
+/* ── NOTES ICON ─────────────────────────── */
+.note-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: var(--cream-dark);
+  font-size: 0.58rem;
+  color: var(--charcoal-soft);
+  cursor: help;
+  margin-left: 0.3rem;
+  vertical-align: middle;
+  position: relative;
+}
+
+/* ── FAB ────────────────────────────────── */
+.fab {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(140deg, var(--rose-gold-light), var(--rose-dark));
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 1.6rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(196,149,106,0.5);
+  transition: all 0.28s cubic-bezier(0.34,1.56,0.64,1);
+  z-index: 100;
+}
+
+.fab:hover { transform: scale(1.1) rotate(90deg); box-shadow: 0 6px 30px rgba(196,149,106,0.65); }
+
+/* ── MODAL ──────────────────────────────── */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(44,36,32,0.52);
+  backdrop-filter: blur(5px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  animation: ov-in 0.18s ease;
+}
+
+@keyframes ov-in { from { opacity:0 } to { opacity:1 } }
+
+.modal {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: m-in 0.24s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+@keyframes m-in {
+  from { transform: translateY(24px) scale(0.96); }
+  to   { transform: translateY(0)    scale(1); }
+}
+
+.m-head {
+  padding: 1.4rem 1.6rem 0.9rem;
+  border-bottom: 1px solid var(--cream-dark);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.m-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.35rem;
+  font-style: italic;
+  font-weight: 400;
+}
+
+.m-close {
+  width: 30px; height: 30px;
+  border-radius: 7px;
+  border: none;
+  background: var(--cream);
+  color: var(--charcoal-soft);
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.m-close:hover { background: var(--cream-dark); }
+
+.m-body {
+  padding: 1.2rem 1.6rem 1.5rem;
+}
+
+.f-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.f-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.38rem;
+}
+
+.f-group.span2 { grid-column: 1 / -1; }
+
+.f-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--charcoal-soft);
+  opacity: 0.65;
+  font-weight: 500;
+}
+
+.f-input, .f-select {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem;
+  color: var(--charcoal);
+  background: var(--cream);
+  border: 1px solid var(--cream-dark);
+  border-radius: var(--radius-sm);
+  padding: 0.58rem 0.75rem;
+  outline: none;
+  transition: border-color var(--transition), box-shadow var(--transition);
+  width: 100%;
+}
+
+.f-input:focus, .f-select:focus {
+  border-color: var(--rose-gold);
+  box-shadow: 0 0 0 3px rgba(196,149,106,0.13);
+}
+
+.f-input.money {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.1rem;
+}
+
+.f-input.error { border-color: var(--error) !important; }
+
+.f-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 1.25rem;
+}
+
+.btn-cancel {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  padding: 0.6rem 1.2rem;
+  border-radius: 50px;
+  border: 1px solid var(--cream-dark);
+  background: transparent;
+  color: var(--charcoal-soft);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.btn-cancel:hover { background: var(--cream-dark); }
+
+.btn-save {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  padding: 0.6rem 1.5rem;
+  border-radius: 50px;
+  border: none;
+  background: linear-gradient(135deg, var(--rose-gold), var(--rose-dark));
+  color: white;
+  cursor: pointer;
+  transition: all var(--transition);
+  box-shadow: 0 2px 10px rgba(196,149,106,0.35);
+}
+
+.btn-save:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(196,149,106,0.5);
+}
+
+/* ── TOAST ──────────────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 5.5rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(12px);
+  background: var(--charcoal);
+  color: var(--cream);
+  padding: 0.65rem 1.4rem;
+  border-radius: 50px;
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+  z-index: 2000;
+  opacity: 0;
+  transition: all 0.28s;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── RESPONSIVE ─────────────────────────── */
+@media (max-width: 580px) {
+  .container { padding: 1.25rem 1rem 5rem; }
+  .cat-amounts { gap: 0.75rem; }
+  .hide-sm { display: none !important; }
+  .row-actions { opacity: 1; }
+  .f-grid { grid-template-columns: 1fr; }
+  .f-group.span2 { grid-column: 1; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="ornament-row">
+    <div class="orn-line"></div>
+    <div class="orn-dot"></div>
+    <div class="orn-diamond"></div>
+    <div class="orn-dot"></div>
+    <div class="orn-line"></div>
+  </div>
+  <h1><em>Forever</em> Budget</h1>
+  <p class="header-sub">Wedding &amp; Engagement Planner</p>
+</header>
+
+<!-- BUDGET BAR -->
+<div class="budget-bar">
+  <label for="totalBudget">Total Wedding Budget</label>
+  <span class="budget-bar-symbol">$</span>
+  <input type="number" id="totalBudget" placeholder="50,000" min="0" step="100">
+</div>
+
+<!-- MAIN -->
+<div class="container">
+
+  <!-- Summary -->
+  <div class="summary-grid" id="summGrid">
+    <div class="summary-card c-budget">
+      <div class="s-label">Total Budget</div>
+      <div class="s-value" id="sBudget">$0</div>
+      <div class="s-sub">Set above</div>
+    </div>
+    <div class="summary-card c-est">
+      <div class="s-label">Estimated</div>
+      <div class="s-value" id="sEst">$0</div>
+      <div class="s-sub">Planned total</div>
+    </div>
+    <div class="summary-card c-act">
+      <div class="s-label">Actual</div>
+      <div class="s-value" id="sAct">$0</div>
+      <div class="s-sub">Confirmed spend</div>
+    </div>
+    <div class="summary-card" id="sBalCard">
+      <div class="s-label">Remaining</div>
+      <div class="s-value" id="sBal">$0</div>
+      <div class="s-sub" id="sBalSub">Based on actual</div>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-section">
+    <div class="progress-header">
+      <span class="progress-label">Budget Progress</span>
+      <span class="progress-pct" id="pPct">0% spent</span>
+    </div>
+    <div class="p-track">
+      <div class="p-fill" id="pFill" style="width:0%"></div>
+    </div>
+  </div>
+
+  <!-- Categories -->
+  <div class="section-row">
+    <h2 class="section-heading">Budget <em>Categories</em></h2>
+  </div>
+
+  <div class="cats" id="catsList"></div>
+</div>
+
+<!-- FAB -->
+<button class="fab" id="fabBtn" title="Add new expense">+</button>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay" style="display:none">
+  <div class="modal">
+    <div class="m-head">
+      <h3 class="m-title" id="mTitle">Add Item</h3>
+      <button class="m-close" id="mClose">✕</button>
+    </div>
+    <div class="m-body">
+      <div class="f-grid">
+        <div class="f-group span2">
+          <label class="f-label">Item Name *</label>
+          <input type="text" class="f-input" id="fName" placeholder="e.g. Reception Venue">
+        </div>
+        <div class="f-group span2">
+          <label class="f-label">Category</label>
+          <select class="f-select" id="fCat"></select>
+        </div>
+        <div class="f-group">
+          <label class="f-label">Vendor / Provider</label>
+          <input type="text" class="f-input" id="fVendor" placeholder="e.g. Grand Estate">
+        </div>
+        <div class="f-group">
+          <label class="f-label">Payment Status</label>
+          <select class="f-select" id="fPaid">
+            <option value="false">◷ Pending</option>
+            <option value="true">✓ Paid</option>
+          </select>
+        </div>
+        <div class="f-group">
+          <label class="f-label">Estimated Cost ($)</label>
+          <input type="number" class="f-input money" id="fEst" placeholder="0.00" min="0" step="0.01">
+        </div>
+        <div class="f-group">
+          <label class="f-label">Actual Cost ($)</label>
+          <input type="number" class="f-input money" id="fAct" placeholder="0.00" min="0" step="0.01">
+        </div>
+        <div class="f-group span2">
+          <label class="f-label">Notes</label>
+          <input type="text" class="f-input" id="fNotes" placeholder="Contract details, deposit info...">
+        </div>
+      </div>
+      <div class="f-actions">
+        <button class="btn-cancel" id="mCancel">Cancel</button>
+        <button class="btn-save" id="mSave">Save Item</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── CATEGORIES ────────────────────────────────────────────────────────────
+const CATS = [
+  { id:'venue',         name:'Venue',                 icon:'🏛️',  color:'#C4956A' },
+  { id:'catering',      name:'Catering & Bar',         icon:'🍽️',  color:'#8A9E7E' },
+  { id:'flowers',       name:'Flowers & Décor',        icon:'🌸',  color:'#D4A0A0' },
+  { id:'photography',   name:'Photography & Video',    icon:'📷',  color:'#7E9EBA' },
+  { id:'attire',        name:'Attire & Beauty',        icon:'👗',  color:'#B09CC8' },
+  { id:'rings',         name:'Rings & Jewelry',        icon:'💍',  color:'#C9A84C' },
+  { id:'invitations',   name:'Invitations & Paper',    icon:'💌',  color:'#C07A7A' },
+  { id:'honeymoon',     name:'Honeymoon',              icon:'✈️',  color:'#7ABAC9' },
+  { id:'entertainment', name:'Entertainment',          icon:'🎵',  color:'#9E8A7E' },
+  { id:'ceremony',      name:'Ceremony & Officiant',   icon:'💒',  color:'#A88F7E' },
+  { id:'transport',     name:'Transportation',         icon:'🚗',  color:'#8EA88E' },
+  { id:'favors',        name:'Favors & Gifts',         icon:'🎁',  color:'#C4A882' },
+  { id:'beauty',        name:'Hair & Makeup',          icon:'✨',  color:'#C8A0B8' },
+  { id:'other',         name:'Other',                  icon:'📦',  color:'#A0A0A0' },
+];
+
+// ─── STATE ─────────────────────────────────────────────────────────────────
+let S = { totalBudget: 0, items: [], openCats: {}, editId: null };
+
+function load() {
+  try {
+    const d = localStorage.getItem('foreverBudget_v2');
+    if (d) S = { ...S, ...JSON.parse(d) };
+  } catch(e) {}
+}
+
+function save() {
+  localStorage.setItem('foreverBudget_v2', JSON.stringify(S));
+}
+
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
+// ─── FORMATTERS ────────────────────────────────────────────────────────────
+function fmt(n) {
+  const v = parseFloat(n);
+  if (!v && v !== 0) return '—';
+  return '$' + v.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+
+function esc(s) {
+  return String(s||'')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─── RENDER ────────────────────────────────────────────────────────────────
+function render() {
+  renderSummary();
+  renderCats();
+  save();
+}
+
+function renderSummary() {
+  const est = S.items.reduce((a,i) => a + (+i.estimated||0), 0);
+  const act = S.items.reduce((a,i) => a + (+i.actual||0), 0);
+  const bud = +S.totalBudget || 0;
+  const bal = bud - act;
+  const pct = bud > 0 ? Math.min(act / bud * 100, 100) : 0;
+  const over = bud > 0 && act > bud;
+
+  document.getElementById('sBudget').textContent = fmt(bud);
+  document.getElementById('sEst').textContent    = fmt(est);
+  document.getElementById('sAct').textContent    = fmt(act);
+
+  const balEl   = document.getElementById('sBal');
+  const balCard = document.getElementById('sBalCard');
+  const balSub  = document.getElementById('sBalSub');
+
+  balEl.textContent   = fmt(Math.abs(bal));
+  balEl.className     = 's-value ' + (bal < 0 ? 'neg' : 'pos');
+  balCard.className   = 'summary-card ' + (bal < 0 ? 'c-bal-over' : 'c-bal-ok');
+  balSub.textContent  = bal < 0 ? 'Over budget!' : 'Remaining';
+
+  const fill = document.getElementById('pFill');
+  fill.style.width  = pct + '%';
+  fill.className    = 'p-fill' + (over ? ' over-budget' : '');
+  document.getElementById('pPct').textContent = Math.round(pct) + '% spent';
+}
+
+function renderCats() {
+  const list = document.getElementById('catsList');
+  list.innerHTML = '';
+
+  CATS.forEach(cat => {
+    const items  = S.items.filter(i => i.catId === cat.id);
+    const est    = items.reduce((a,i) => a + (+i.estimated||0), 0);
+    const act    = items.reduce((a,i) => a + (+i.actual||0), 0);
+    const isOpen = S.openCats[cat.id];
+    const pct    = est > 0 ? Math.min(act/est*100, 100) : 0;
+    const overC  = act > est && est > 0;
+
+    const card   = document.createElement('div');
+    card.className = 'cat-card' + (isOpen ? ' open' : '');
+    card.dataset.catId = cat.id;
+
+    card.innerHTML = `
+      <div class="cat-head" data-toggle="${cat.id}">
+        <div class="cat-dot" style="background:${cat.color}"></div>
+        <span class="cat-icon">${cat.icon}</span>
+        <span class="cat-name">${cat.name}</span>
+        ${items.length ? `
+        <div class="cat-amounts">
+          <div class="cat-amt hide-sm">
+            <span class="cat-amt-label">Est.</span>
+            <span class="cat-amt-val">${fmt(est)}</span>
+          </div>
+          <div class="cat-amt">
+            <span class="cat-amt-label">Actual</span>
+            <span class="cat-amt-val ${overC ? 'over-cat' : ''}">${fmt(act)}</span>
+          </div>
+        </div>` : ''}
+        <span class="cat-chevron">▼</span>
+      </div>
+      ${items.length ? `<div class="cat-prog"><div class="cat-prog-fill" style="width:${pct}%;background:${cat.color}"></div></div>` : ''}
+      <div class="cat-body">
+        ${renderItemTable(items)}
+        <button class="btn-add-item" data-cat="${cat.id}">＋ Add item to ${cat.name}</button>
+      </div>
+    `;
+    list.appendChild(card);
+  });
+
+  // Toggle open/close
+  list.querySelectorAll('.cat-head[data-toggle]').forEach(el => {
+    el.addEventListener('click', () => {
+      S.openCats[el.dataset.toggle] = !S.openCats[el.dataset.toggle];
+      render();
+    });
+  });
+
+  // Add item per category
+  list.querySelectorAll('.btn-add-item[data-cat]').forEach(btn => {
+    btn.addEventListener('click', e => { e.stopPropagation(); openModal(null, btn.dataset.cat); });
+  });
+
+  // Edit
+  list.querySelectorAll('.btn-edit[data-id]').forEach(btn => {
+    btn.addEventListener('click', e => { e.stopPropagation(); openModal(btn.dataset.id); });
+  });
+
+  // Delete
+  list.querySelectorAll('.btn-del[data-id]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      if (!confirm('Remove this item?')) return;
+      S.items = S.items.filter(i => i.id !== btn.dataset.id);
+      toast('Item removed');
+      render();
+    });
+  });
+
+  // Toggle paid
+  list.querySelectorAll('.badge[data-id]').forEach(b => {
+    b.addEventListener('click', e => {
+      e.stopPropagation();
+      const item = S.items.find(i => i.id === b.dataset.id);
+      if (!item) return;
+      item.paid = !item.paid;
+      toast(item.paid ? 'Marked as paid ✓' : 'Marked as pending');
+      render();
+    });
+  });
+}
+
+function renderItemTable(items) {
+  if (!items.length) return `<div class="empty-cat">No items yet — add your first expense below.</div>`;
+  return `
+    <table class="items">
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th class="hide-sm">Vendor</th>
+          <th>Estimated</th>
+          <th>Actual</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        ${items.map(it => {
+          const e = +it.estimated||0, a = +it.actual||0;
+          const overIt = a > e && e > 0, underIt = a > 0 && a < e;
+          return `
+            <tr>
+              <td>
+                <div class="it-name">${esc(it.name)}</div>
+                ${it.vendor ? `<div class="it-vendor">${esc(it.vendor)}</div>` : ''}
+              </td>
+              <td class="hide-sm" style="color:var(--charcoal-soft);font-size:0.8rem">${it.vendor ? esc(it.vendor) : '—'}</td>
+              <td><span class="it-cost">${e ? fmt(e) : '—'}</span></td>
+              <td>
+                <span class="it-cost ${overIt?'over':underIt?'under':''}">${a ? fmt(a) : '—'}</span>
+                ${it.notes ? `<span class="note-icon" title="${esc(it.notes)}">ℹ</span>` : ''}
+              </td>
+              <td>
+                <span class="badge ${it.paid?'paid':'unpaid'}" data-id="${it.id}">
+                  ${it.paid ? '✓ Paid' : '◷ Pending'}
+                </span>
+              </td>
+              <td>
+                <div class="row-actions">
+                  <button class="btn-ic btn-edit" data-id="${it.id}" title="Edit">✏</button>
+                  <button class="btn-ic del btn-del"  data-id="${it.id}" title="Delete">✕</button>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+// ─── MODAL ─────────────────────────────────────────────────────────────────
+function populateCatSelect(selId) {
+  const sel = document.getElementById('fCat');
+  sel.innerHTML = CATS.map(c =>
+    `<option value="${c.id}" ${c.id===selId?'selected':''}>${c.icon} ${c.name}</option>`
+  ).join('');
+}
+
+function openModal(itemId, defaultCat) {
+  S.editId = itemId || null;
+  const it = itemId ? S.items.find(i => i.id === itemId) : null;
+
+  document.getElementById('mTitle').textContent = itemId ? 'Edit Item' : 'Add New Item';
+  populateCatSelect(it ? it.catId : (defaultCat || 'venue'));
+  document.getElementById('fName').value   = it ? it.name    : '';
+  document.getElementById('fVendor').value = it ? (it.vendor||'')   : '';
+  document.getElementById('fEst').value    = it ? (it.estimated||'') : '';
+  document.getElementById('fAct').value    = it ? (it.actual||'')    : '';
+  document.getElementById('fPaid').value   = it ? String(it.paid) : 'false';
+  document.getElementById('fNotes').value  = it ? (it.notes||'')    : '';
+  document.getElementById('fName').classList.remove('error');
+
+  document.getElementById('overlay').style.display = 'flex';
+  requestAnimationFrame(() => document.getElementById('fName').focus());
+}
+
+function closeModal() {
+  document.getElementById('overlay').style.display = 'none';
+  S.editId = null;
+}
+
+function saveItem() {
+  const name = document.getElementById('fName').value.trim();
+  if (!name) {
+    document.getElementById('fName').classList.add('error');
+    document.getElementById('fName').focus();
+    return;
+  }
+
+  const data = {
+    catId:     document.getElementById('fCat').value,
+    name,
+    vendor:    document.getElementById('fVendor').value.trim(),
+    estimated: parseFloat(document.getElementById('fEst').value) || 0,
+    actual:    parseFloat(document.getElementById('fAct').value) || 0,
+    paid:      document.getElementById('fPaid').value === 'true',
+    notes:     document.getElementById('fNotes').value.trim(),
+  };
+
+  if (S.editId) {
+    const idx = S.items.findIndex(i => i.id === S.editId);
+    if (idx !== -1) S.items[idx] = { ...S.items[idx], ...data };
+    toast('Item updated ✓');
+  } else {
+    data.id = uid();
+    S.items.push(data);
+    S.openCats[data.catId] = true;
+    toast('Item added ✓');
+  }
+
+  closeModal();
+  render();
+}
+
+// ─── TOAST ─────────────────────────────────────────────────────────────────
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('on'), 2400);
+}
+
+// ─── EVENTS ────────────────────────────────────────────────────────────────
+document.getElementById('totalBudget').addEventListener('input', e => {
+  S.totalBudget = parseFloat(e.target.value) || 0;
+  renderSummary(); save();
+});
+
+document.getElementById('fabBtn').addEventListener('click', () => openModal(null));
+document.getElementById('mClose').addEventListener('click', closeModal);
+document.getElementById('mCancel').addEventListener('click', closeModal);
+document.getElementById('mSave').addEventListener('click', saveItem);
+
+document.getElementById('overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('overlay')) closeModal();
+});
+
+document.addEventListener('keydown', e => {
+  const open = document.getElementById('overlay').style.display !== 'none';
+  if (e.key === 'Escape' && open) closeModal();
+  if (e.key === 'Enter'  && open && document.activeElement?.tagName !== 'BUTTON') saveItem();
+});
+
+// ─── INIT ──────────────────────────────────────────────────────────────────
+load();
+
+document.getElementById('totalBudget').value = S.totalBudget || '';
+
+// Seed sample data on first load
+if (!S.items.length) {
+  S.totalBudget = 50000;
+  document.getElementById('totalBudget').value = 50000;
+
+  const seed = [
+    { catId:'venue',       name:'Reception Venue',         vendor:'The Grand Estate',         estimated:9000,  actual:8500,  paid:true,  notes:'Deposit of $2,500 paid. Balance due 60 days before.' },
+    { catId:'rings',       name:'Engagement Ring',         vendor:"Brilliant Earth",           estimated:5500,  actual:5200,  paid:true,  notes:'GIA certified diamond, platinum band' },
+    { catId:'rings',       name:'Wedding Bands (×2)',      vendor:'Local Goldsmith',           estimated:1200,  actual:0,     paid:false, notes:'Custom engraving included' },
+    { catId:'catering',    name:'Reception Dinner',        vendor:'Saveur Catering Co.',       estimated:13000, actual:0,     paid:false, notes:'Menu tasting booked for next month' },
+    { catId:'catering',    name:'Wedding Cake',            vendor:'Sugar Blossom Bakery',      estimated:800,   actual:750,   paid:true,  notes:'3-tier, lemon elderflower' },
+    { catId:'photography', name:'Photographer',            vendor:'Laura Chen Photography',    estimated:3800,  actual:3800,  paid:false, notes:'8-hour coverage + engagement shoot' },
+    { catId:'photography', name:'Videographer',            vendor:'Cinematic Moments',         estimated:2500,  actual:0,     paid:false, notes:'Highlight reel + full edit' },
+    { catId:'flowers',     name:'Bridal Bouquet & Party',  vendor:'Bloom & Wild Studio',       estimated:1800,  actual:0,     paid:false, notes:'' },
+    { catId:'flowers',     name:'Ceremony Arch & Décor',   vendor:'Bloom & Wild Studio',       estimated:1200,  actual:0,     paid:false, notes:'' },
+    { catId:'attire',      name:'Wedding Dress',           vendor:'Vera Wang Bridal',          estimated:3500,  actual:3200,  paid:true,  notes:'Alterations included' },
+    { catId:'attire',      name:'Groom Suit',              vendor:'The Black Tux',             estimated:600,   actual:580,   paid:true,  notes:'Rental' },
+    { catId:'invitations', name:'Save the Dates',          vendor:'Minted',                    estimated:250,   actual:230,   paid:true,  notes:'Sent 8 months out' },
+    { catId:'invitations', name:'Wedding Invitations',     vendor:'Minted',                    estimated:450,   actual:0,     paid:false, notes:'Send 8 weeks before date' },
+    { catId:'honeymoon',   name:'Flights',                 vendor:'Delta Airlines',            estimated:2800,  actual:2650,  paid:true,  notes:'Bali, round trip for two' },
+    { catId:'honeymoon',   name:'Hotel & Villa',           vendor:'Four Seasons Bali',         estimated:4500,  actual:0,     paid:false, notes:'7 nights booked' },
+    { catId:'beauty',      name:'Bridal Hair & Makeup',    vendor:'Glow Beauty Studio',        estimated:900,   actual:900,   paid:true,  notes:'Trial session included' },
+    { catId:'entertainment',name:'DJ & Sound',             vendor:'Nightbeat Events',          estimated:2200,  actual:0,     paid:false, notes:'5-hour set, cocktail hour + reception' },
+  ];
+
+  seed.forEach(d => { d.id = uid(); S.items.push(d); });
+  S.openCats = { venue: true, rings: true, catering: true };
+}
+
+render();
+</script>
+</body>
+</html>
