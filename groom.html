@@ -857,11 +857,18 @@ table.items tr:hover .row-actions { opacity: 1; }
   letter-spacing: 0.05em;
 }
 
-/* ── LOGOUT BTN ─────────────────────────── */
-.logout-btn {
+/* ── HEADER BTNS ────────────────────────── */
+.header-actions {
   position: absolute;
   top: 1rem;
   right: 1.25rem;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+/* ── LOGOUT BTN ─────────────────────────── */
+.logout-btn {
   background: rgba(250,246,240,0.1);
   border: 1px solid rgba(250,246,240,0.2);
   color: rgba(250,246,240,0.6);
@@ -937,7 +944,10 @@ table.items tr:hover .row-actions { opacity: 1; }
   </div>
   <h1><em>Forever</em> Budget</h1>
   <p class="header-sub">Groom's Wedding Planner</p>
-  <button class="logout-btn" id="logoutBtn" title="Lock">🔒 Lock</button>
+  <div class="header-actions">
+    <button class="logout-btn" id="changePwBtn" title="Change password">🔑 Password</button>
+    <button class="logout-btn" id="logoutBtn" title="Lock">🔒 Lock</button>
+  </div>
 </header>
 
 <!-- BUDGET BAR -->
@@ -1040,6 +1050,37 @@ table.items tr:hover .row-actions { opacity: 1; }
       <div class="f-actions">
         <button class="btn-cancel" id="mCancel">Cancel</button>
         <button class="btn-save" id="mSave">Save Item</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CHANGE PASSWORD MODAL -->
+<div class="overlay" id="cpOverlay" style="display:none">
+  <div class="modal">
+    <div class="m-head">
+      <h3 class="m-title">Change Password</h3>
+      <button class="m-close" id="cpClose">✕</button>
+    </div>
+    <div class="m-body">
+      <div class="f-grid" style="grid-template-columns:1fr">
+        <div class="f-group">
+          <label class="f-label">Current Password</label>
+          <input type="password" class="f-input" id="cpCurrent" placeholder="••••••••" autocomplete="current-password">
+        </div>
+        <div class="f-group">
+          <label class="f-label">New Password</label>
+          <input type="password" class="f-input" id="cpNew" placeholder="••••••••" autocomplete="new-password">
+        </div>
+        <div class="f-group">
+          <label class="f-label">Confirm New Password</label>
+          <input type="password" class="f-input" id="cpConfirm" placeholder="••••••••" autocomplete="new-password">
+        </div>
+        <div class="login-error" id="cpError" style="margin-top:0.25rem"></div>
+      </div>
+      <div class="f-actions">
+        <button class="btn-cancel" id="cpCancel">Cancel</button>
+        <button class="btn-save" id="cpSave">Update Password</button>
       </div>
     </div>
   </div>
@@ -1525,6 +1566,63 @@ async function doLogout() {
   S = { totalBudget: 0, items: [], openCats: {}, editId: null, configObjId: null };
   showLogin();
 }
+
+// ─── CHANGE PASSWORD ────────────────────────────────────────────────────────
+function openChangePw() {
+  document.getElementById('cpCurrent').value = '';
+  document.getElementById('cpNew').value     = '';
+  document.getElementById('cpConfirm').value = '';
+  document.getElementById('cpError').textContent = '';
+  document.getElementById('cpError').classList.remove('show');
+  document.getElementById('cpOverlay').style.display = 'flex';
+  requestAnimationFrame(() => document.getElementById('cpCurrent').focus());
+}
+
+function closeChangePw() {
+  document.getElementById('cpOverlay').style.display = 'none';
+}
+
+function cpShowError(msg) {
+  const el = document.getElementById('cpError');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+
+async function submitChangePw() {
+  const current  = document.getElementById('cpCurrent').value;
+  const newPass  = document.getElementById('cpNew').value;
+  const confirm  = document.getElementById('cpConfirm').value;
+
+  if (!current || !newPass || !confirm) { cpShowError('All fields are required.'); return; }
+  if (newPass.length < 6)               { cpShowError('New password must be at least 6 characters.'); return; }
+  if (newPass !== confirm)              { cpShowError('New passwords do not match.'); return; }
+
+  document.getElementById('cpSave').disabled = true;
+  showLoading(true);
+  try {
+    await Parse.User.logIn(PARSE_USER, current);
+    const user = Parse.User.current();
+    user.setPassword(newPass);
+    await user.save();
+    closeChangePw();
+    toast('Password updated ✓');
+  } catch(e) {
+    cpShowError(e.code === 101 ? 'Current password is incorrect.' : 'Update failed. Try again.');
+  }
+  document.getElementById('cpSave').disabled = false;
+  showLoading(false);
+}
+
+document.getElementById('changePwBtn').addEventListener('click', openChangePw);
+document.getElementById('cpClose').addEventListener('click', closeChangePw);
+document.getElementById('cpCancel').addEventListener('click', closeChangePw);
+document.getElementById('cpSave').addEventListener('click', submitChangePw);
+document.getElementById('cpOverlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('cpOverlay')) closeChangePw();
+});
+document.getElementById('cpConfirm').addEventListener('keydown', e => {
+  if (e.key === 'Enter') submitChangePw();
+});
 
 document.getElementById('loginBtn').addEventListener('click', tryLogin);
 document.getElementById('loginPass').addEventListener('keydown', e => {
