@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Forever Budget — Wedding & Engagement Planner</title>
+<title>Forever Budget — Groom's Planner</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -892,6 +892,14 @@ table.items tr:hover .row-actions { opacity: 1; }
 </head>
 <body>
 
+<!-- LOADING OVERLAY -->
+<div id="loadingOverlay" style="display:none;position:fixed;inset:0;background:rgba(44,36,32,0.45);backdrop-filter:blur(3px);z-index:9998;align-items:center;justify-content:center;">
+  <div style="background:white;border-radius:14px;padding:2rem 2.5rem;text-align:center;box-shadow:0 12px 48px rgba(44,36,32,0.25);">
+    <div style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-style:italic;color:#2C2420;margin-bottom:0.5rem;">Loading…</div>
+    <div style="font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;color:#5A4E48;opacity:0.6;">Please wait</div>
+  </div>
+</div>
+
 <!-- LOGIN SCREEN -->
 <div id="loginScreen" style="display:none">
   <div class="login-bg"></div>
@@ -1040,7 +1048,15 @@ table.items tr:hover .row-actions { opacity: 1; }
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
+<script src="https://unpkg.com/parse/dist/parse.min.js"></script>
 <script>
+// ─── PARSE / BACK4APP CONFIG ────────────────────────────────────────────────
+const B4A_APP_ID  = 'YOUR_BACK4APP_APP_ID';   // ← fill in after Back4App setup
+const B4A_JS_KEY  = 'YOUR_BACK4APP_JS_KEY';   // ← fill in after Back4App setup
+const PARSE_USER  = 'groom';                   // Parse username for this page
+Parse.initialize(B4A_APP_ID, B4A_JS_KEY);
+Parse.serverURL   = 'https://parseapi.back4app.com/';
+
 // ─── CATEGORIES ────────────────────────────────────────────────────────────
 const CATS = [
   { id:'venue',         name:'Venue',                 icon:'🏛️',  color:'#C4956A' },
@@ -1056,27 +1072,12 @@ const CATS = [
   { id:'transport',     name:'Transportation',         icon:'🚗',  color:'#8EA88E' },
   { id:'favors',        name:'Favors & Gifts',         icon:'🎁',  color:'#C4A882' },
   { id:'beauty',        name:'Hair & Makeup',          icon:'✨',  color:'#C8A0B8' },
-  { id:'accommodation', name:'Accommodation',            icon:'🏨',  color:'#7E9EBA' },
+  { id:'accommodation', name:'Accommodation',          icon:'🏨',  color:'#7E9EBA' },
   { id:'other',         name:'Other',                  icon:'📦',  color:'#A0A0A0' },
 ];
 
-// ─── STATE ─────────────────────────────────────────────────────────────────
-let S = { totalBudget: 0, items: [], openCats: {}, editId: null };
-
-function load() {
-  try {
-    const d = localStorage.getItem('foreverBudget_groom');
-    if (d) S = { ...S, ...JSON.parse(d) };
-  } catch(e) {}
-}
-
-function save() {
-  localStorage.setItem('foreverBudget_groom', JSON.stringify(S));
-}
-
-function uid() {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-}
+// ─── STATE ──────────────────────────────────────────────────────────────────
+let S = { totalBudget: 0, items: [], openCats: {}, editId: null, configObjId: null };
 
 // ─── FORMATTERS ────────────────────────────────────────────────────────────
 function fmt(n) {
@@ -1084,26 +1085,150 @@ function fmt(n) {
   if (!v && v !== 0) return '—';
   return '₹' + v.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 }
-
 function esc(s) {
-  return String(s||'')
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─── LOADING OVERLAY ────────────────────────────────────────────────────────
+function showLoading(on) {
+  document.getElementById('loadingOverlay').style.display = on ? 'flex' : 'none';
+}
+
+// ─── PARSE DATA LAYER ───────────────────────────────────────────────────────
+async function loadFromParse() {
+  showLoading(true);
+  try {
+    const cq = new Parse.Query('BudgetConfig');
+    const configs = await cq.find();
+    if (configs.length > 0) {
+      const c = configs[0];
+      S.totalBudget   = c.get('totalBudget') || 0;
+      S.openCats      = c.get('openCats')    || {};
+      S.configObjId   = c.id;
+    } else {
+      await saveConfig();
+    }
+
+    const iq = new Parse.Query('BudgetItem');
+    iq.limit(1000);
+    iq.ascending('createdAt');
+    const parseItems = await iq.find();
+    S.items = parseItems.map(p => ({
+      id:        p.id,
+      catId:     p.get('catId'),
+      name:      p.get('name'),
+      vendor:    p.get('vendor')    || '',
+      estimated: p.get('estimated') || 0,
+      actual:    p.get('actual')    || 0,
+      paid:      p.get('paid')      || false,
+      notes:     p.get('notes')     || '',
+    }));
+
+    document.getElementById('totalBudget').value = S.totalBudget || '';
+
+    if (S.items.length === 0) await seedData();
+    render();
+  } catch(e) {
+    console.error('Load error:', e);
+    toast('⚠ Failed to load data. Check connection.');
+  }
+  showLoading(false);
+}
+
+async function saveConfig() {
+  try {
+    const BudgetConfig = Parse.Object.extend('BudgetConfig');
+    let config;
+    if (S.configObjId) {
+      config = await new Parse.Query('BudgetConfig').get(S.configObjId);
+    } else {
+      config = new BudgetConfig();
+      const acl = new Parse.ACL(Parse.User.current());
+      config.setACL(acl);
+    }
+    config.set('totalBudget', +S.totalBudget || 0);
+    config.set('openCats',    S.openCats);
+    await config.save();
+    S.configObjId = config.id;
+  } catch(e) { console.error('Config save error:', e); }
+}
+
+let configTimer;
+function debouncedSaveConfig() {
+  clearTimeout(configTimer);
+  configTimer = setTimeout(() => saveConfig(), 800);
+}
+
+async function parseCreateItem(data) {
+  const BudgetItem = Parse.Object.extend('BudgetItem');
+  const item = new BudgetItem();
+  const acl  = new Parse.ACL(Parse.User.current());
+  item.setACL(acl);
+  Object.entries(data).forEach(([k, v]) => item.set(k, v));
+  await item.save();
+  return item.id;
+}
+
+async function parseUpdateItem(id, data) {
+  const item = await new Parse.Query('BudgetItem').get(id);
+  Object.entries(data).forEach(([k, v]) => item.set(k, v));
+  await item.save();
+}
+
+async function parseDeleteItem(id) {
+  const item = await new Parse.Query('BudgetItem').get(id);
+  await item.destroy();
+}
+
+async function seedData() {
+  S.totalBudget = 2000000;
+  document.getElementById('totalBudget').value = 2000000;
+  const seed = [
+    { catId:'venue',        name:'Wedding Venue / Banquet Hall', vendor:'The Leela Palace',         estimated:0, actual:0, paid:false, notes:'' },
+    { catId:'rings',        name:'Engagement Ring',              vendor:'Tanishq',                  estimated:0, actual:0, paid:false, notes:'' },
+    { catId:'rings',        name:'Wedding Bands (×2)',           vendor:'PC Jeweller',              estimated:0, actual:0, paid:false, notes:'' },
+    { catId:'catering',     name:'Reception Dinner & Snacks',    vendor:'Gupta Caterers',           estimated:0, actual:0, paid:false, notes:'' },
+    { catId:'catering',     name:'Wedding Cake',                 vendor:'The Cake Studio',          estimated:0, actual:0, paid:false, notes:'' },
+    { catId:'photography',  name:'Photographer',                 vendor:'Candid Weddingz',          estimated:0, actual:0, paid:false, notes:'' },
+    { catId:'photography',  name:'Videographer',                 vendor:'Frame Perfect Studios',    estimated:0, actual:0, paid:false, notes:'' },
+    { catId:'flowers',      name:'Bridal Bouquet & Garlands',    vendor:'Phool Bagh Florists',      estimated:0, actual:0, paid:false, notes:'' },
+    { catId:'flowers',      name:'Stage & Mandap Décor',         vendor:'Dream Décor Co.',          estimated:0, actual:0, paid:false, notes:'' },
+    { catId:'attire',       name:'Bridal Lehenga',               vendor:'Sabyasachi',               estimated:0, actual:0, paid:false, notes:'' },
+    { catId:'attire',       name:'Groom Sherwani',               vendor:'Manyavar',                 estimated:0, actual:0, paid:false, notes:'' },
+    { catId:'invitations',  name:'E-Invites & Printing',         vendor:'Zola Studio',              estimated:0, actual:0, paid:false, notes:'' },
+    { catId:'honeymoon',    name:'Flights',                      vendor:'Air India / IndiGo',       estimated:0, actual:0, paid:false, notes:'' },
+    { catId:'honeymoon',    name:'Resort Stay',                  vendor:'Sun Siyam Iru Fushi',      estimated:0, actual:0, paid:false, notes:'' },
+    { catId:'beauty',       name:'Bridal Hair & Makeup',         vendor:'Meenakshi Dutt Makeovers', estimated:0, actual:0, paid:false, notes:'' },
+    { catId:'entertainment',name:'DJ & Sound System',            vendor:'DJ Suketu Events',         estimated:0, actual:0, paid:false, notes:'' },
+    { catId:'ceremony',     name:'Pandit & Ceremony Rituals',    vendor:'Local Purohit',            estimated:0, actual:0, paid:false, notes:'' },
+    { catId:'accommodation',name:'Guest Accommodation',          vendor:'',                         estimated:0, actual:0, paid:false, notes:'' },
+  ];
+  const BudgetItem = Parse.Object.extend('BudgetItem');
+  const objects = seed.map(d => {
+    const item = new BudgetItem();
+    const acl  = new Parse.ACL(Parse.User.current());
+    item.setACL(acl);
+    Object.entries(d).forEach(([k, v]) => item.set(k, v));
+    return item;
+  });
+  const saved = await Parse.Object.saveAll(objects);
+  S.items = saved.map((p, i) => ({ id: p.id, ...seed[i] }));
+  S.openCats = { venue: true, rings: true, catering: true };
+  await saveConfig();
 }
 
 // ─── RENDER ────────────────────────────────────────────────────────────────
 function render() {
   renderSummary();
   renderCats();
-  save();
 }
 
 function renderSummary() {
-  const est = S.items.reduce((a,i) => a + (+i.estimated||0), 0);
-  const act = S.items.reduce((a,i) => a + (+i.actual||0), 0);
-  const bud = +S.totalBudget || 0;
-  const bal = bud - act;
-  const pct = bud > 0 ? Math.min(act / bud * 100, 100) : 0;
+  const est  = S.items.reduce((a,i) => a + (+i.estimated||0), 0);
+  const act  = S.items.reduce((a,i) => a + (+i.actual||0),    0);
+  const bud  = +S.totalBudget || 0;
+  const bal  = bud - act;
+  const pct  = bud > 0 ? Math.min(act / bud * 100, 100) : 0;
   const over = bud > 0 && act > bud;
 
   document.getElementById('sBudget').textContent = fmt(bud);
@@ -1113,15 +1238,14 @@ function renderSummary() {
   const balEl   = document.getElementById('sBal');
   const balCard = document.getElementById('sBalCard');
   const balSub  = document.getElementById('sBalSub');
-
-  balEl.textContent   = fmt(Math.abs(bal));
-  balEl.className     = 's-value ' + (bal < 0 ? 'neg' : 'pos');
-  balCard.className   = 'summary-card ' + (bal < 0 ? 'c-bal-over' : 'c-bal-ok');
-  balSub.textContent  = bal < 0 ? 'Over budget!' : 'Remaining';
+  balEl.textContent  = fmt(Math.abs(bal));
+  balEl.className    = 's-value ' + (bal < 0 ? 'neg' : 'pos');
+  balCard.className  = 'summary-card ' + (bal < 0 ? 'c-bal-over' : 'c-bal-ok');
+  balSub.textContent = bal < 0 ? 'Over budget!' : 'Remaining';
 
   const fill = document.getElementById('pFill');
-  fill.style.width  = pct + '%';
-  fill.className    = 'p-fill' + (over ? ' over-budget' : '');
+  fill.style.width = pct + '%';
+  fill.className   = 'p-fill' + (over ? ' over-budget' : '');
   document.getElementById('pPct').textContent = Math.round(pct) + '% spent';
 }
 
@@ -1132,13 +1256,13 @@ function renderCats() {
   CATS.forEach(cat => {
     const items  = S.items.filter(i => i.catId === cat.id);
     const est    = items.reduce((a,i) => a + (+i.estimated||0), 0);
-    const act    = items.reduce((a,i) => a + (+i.actual||0), 0);
+    const act    = items.reduce((a,i) => a + (+i.actual||0),    0);
     const isOpen = S.openCats[cat.id];
     const pct    = est > 0 ? Math.min(act/est*100, 100) : 0;
     const overC  = act > est && est > 0;
 
-    const card   = document.createElement('div');
-    card.className = 'cat-card' + (isOpen ? ' open' : '');
+    const card = document.createElement('div');
+    card.className    = 'cat-card' + (isOpen ? ' open' : '');
     card.dataset.catId = cat.id;
 
     card.innerHTML = `
@@ -1168,44 +1292,48 @@ function renderCats() {
     list.appendChild(card);
   });
 
-  // Toggle open/close
   list.querySelectorAll('.cat-head[data-toggle]').forEach(el => {
     el.addEventListener('click', () => {
       S.openCats[el.dataset.toggle] = !S.openCats[el.dataset.toggle];
+      debouncedSaveConfig();
       render();
     });
   });
 
-  // Add item per category
   list.querySelectorAll('.btn-add-item[data-cat]').forEach(btn => {
     btn.addEventListener('click', e => { e.stopPropagation(); openModal(null, btn.dataset.cat); });
   });
 
-  // Edit
   list.querySelectorAll('.btn-edit[data-id]').forEach(btn => {
     btn.addEventListener('click', e => { e.stopPropagation(); openModal(btn.dataset.id); });
   });
 
-  // Delete
   list.querySelectorAll('.btn-del[data-id]').forEach(btn => {
-    btn.addEventListener('click', e => {
+    btn.addEventListener('click', async e => {
       e.stopPropagation();
       if (!confirm('Remove this item?')) return;
-      S.items = S.items.filter(i => i.id !== btn.dataset.id);
-      toast('Item removed');
-      render();
+      showLoading(true);
+      try {
+        await parseDeleteItem(btn.dataset.id);
+        S.items = S.items.filter(i => i.id !== btn.dataset.id);
+        toast('Item removed');
+        render();
+      } catch(err) { toast('⚠ Delete failed'); }
+      showLoading(false);
     });
   });
 
-  // Toggle paid
   list.querySelectorAll('.badge[data-id]').forEach(b => {
-    b.addEventListener('click', e => {
+    b.addEventListener('click', async e => {
       e.stopPropagation();
       const item = S.items.find(i => i.id === b.dataset.id);
       if (!item) return;
       item.paid = !item.paid;
-      toast(item.paid ? 'Marked as paid ✓' : 'Marked as pending');
       render();
+      try {
+        await parseUpdateItem(item.id, { paid: item.paid });
+        toast(item.paid ? 'Marked as paid ✓' : 'Marked as pending');
+      } catch(err) { item.paid = !item.paid; render(); toast('⚠ Update failed'); }
     });
   });
 }
@@ -1248,7 +1376,7 @@ function renderItemTable(items) {
               <td>
                 <div class="row-actions">
                   <button class="btn-ic btn-edit" data-id="${it.id}" title="Edit">✏</button>
-                  <button class="btn-ic del btn-del"  data-id="${it.id}" title="Delete">✕</button>
+                  <button class="btn-ic del btn-del" data-id="${it.id}" title="Delete">✕</button>
                 </div>
               </td>
             </tr>
@@ -1270,17 +1398,15 @@ function populateCatSelect(selId) {
 function openModal(itemId, defaultCat) {
   S.editId = itemId || null;
   const it = itemId ? S.items.find(i => i.id === itemId) : null;
-
   document.getElementById('mTitle').textContent = itemId ? 'Edit Item' : 'Add New Item';
   populateCatSelect(it ? it.catId : (defaultCat || 'venue'));
-  document.getElementById('fName').value   = it ? it.name    : '';
+  document.getElementById('fName').value   = it ? it.name           : '';
   document.getElementById('fVendor').value = it ? (it.vendor||'')   : '';
   document.getElementById('fEst').value    = it ? (it.estimated||'') : '';
-  document.getElementById('fAct').value    = it ? (it.actual||'')    : '';
-  document.getElementById('fPaid').value   = it ? String(it.paid) : 'false';
+  document.getElementById('fAct').value    = it ? (it.actual||'')   : '';
+  document.getElementById('fPaid').value   = it ? String(it.paid)   : 'false';
   document.getElementById('fNotes').value  = it ? (it.notes||'')    : '';
   document.getElementById('fName').classList.remove('error');
-
   document.getElementById('overlay').style.display = 'flex';
   requestAnimationFrame(() => document.getElementById('fName').focus());
 }
@@ -1290,37 +1416,41 @@ function closeModal() {
   S.editId = null;
 }
 
-function saveItem() {
+async function saveItem() {
   const name = document.getElementById('fName').value.trim();
   if (!name) {
     document.getElementById('fName').classList.add('error');
     document.getElementById('fName').focus();
     return;
   }
-
   const data = {
     catId:     document.getElementById('fCat').value,
     name,
     vendor:    document.getElementById('fVendor').value.trim(),
-    estimated: parseFloat(document.getElementById('fEst').value) || 0,
-    actual:    parseFloat(document.getElementById('fAct').value) || 0,
+    estimated: parseFloat(document.getElementById('fEst').value)  || 0,
+    actual:    parseFloat(document.getElementById('fAct').value)   || 0,
     paid:      document.getElementById('fPaid').value === 'true',
     notes:     document.getElementById('fNotes').value.trim(),
   };
 
-  if (S.editId) {
-    const idx = S.items.findIndex(i => i.id === S.editId);
-    if (idx !== -1) S.items[idx] = { ...S.items[idx], ...data };
-    toast('Item updated ✓');
-  } else {
-    data.id = uid();
-    S.items.push(data);
-    S.openCats[data.catId] = true;
-    toast('Item added ✓');
-  }
-
   closeModal();
-  render();
+  showLoading(true);
+  try {
+    if (S.editId) {
+      await parseUpdateItem(S.editId, data);
+      const idx = S.items.findIndex(i => i.id === S.editId);
+      if (idx !== -1) S.items[idx] = { ...S.items[idx], ...data };
+      toast('Item updated ✓');
+    } else {
+      const newId = await parseCreateItem(data);
+      S.items.push({ id: newId, ...data });
+      S.openCats[data.catId] = true;
+      debouncedSaveConfig();
+      toast('Item added ✓');
+    }
+    render();
+  } catch(err) { toast('⚠ Save failed. Try again.'); }
+  showLoading(false);
 }
 
 // ─── TOAST ─────────────────────────────────────────────────────────────────
@@ -1336,7 +1466,8 @@ function toast(msg) {
 // ─── EVENTS ────────────────────────────────────────────────────────────────
 document.getElementById('totalBudget').addEventListener('input', e => {
   S.totalBudget = parseFloat(e.target.value) || 0;
-  renderSummary(); save();
+  renderSummary();
+  debouncedSaveConfig();
 });
 
 document.getElementById('fabBtn').addEventListener('click', () => openModal(null));
@@ -1355,43 +1486,44 @@ document.addEventListener('keydown', e => {
 });
 
 // ─── AUTH ──────────────────────────────────────────────────────────────────
-const PASSWORD = 'groom2025';
-const APP_NODES = ['appHeader', document.querySelector('.budget-bar'), document.querySelector('.container'), document.getElementById('fabBtn')];
-
-function isUnlocked() {
-  return sessionStorage.getItem('fb_groom') === '1';
-}
-
 function showApp() {
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('appHeader').style.display = '';
-  document.querySelector('.budget-bar').style.display = '';
-  document.querySelector('.container').style.display = '';
-  document.getElementById('fabBtn').style.display = '';
+  document.getElementById('loginScreen').style.display  = 'none';
+  document.getElementById('appHeader').style.display    = '';
+  document.querySelector('.budget-bar').style.display   = '';
+  document.querySelector('.container').style.display    = '';
+  document.getElementById('fabBtn').style.display       = '';
 }
 
 function showLogin() {
-  sessionStorage.removeItem('fb_groom');
-  document.getElementById('loginScreen').style.display = 'flex';
-  document.getElementById('appHeader').style.display = 'none';
-  document.querySelector('.budget-bar').style.display = 'none';
-  document.querySelector('.container').style.display = 'none';
-  document.getElementById('fabBtn').style.display = 'none';
-  document.getElementById('loginPass').value = '';
+  document.getElementById('loginScreen').style.display  = 'flex';
+  document.getElementById('appHeader').style.display    = 'none';
+  document.querySelector('.budget-bar').style.display   = 'none';
+  document.querySelector('.container').style.display    = 'none';
+  document.getElementById('fabBtn').style.display       = 'none';
+  document.getElementById('loginPass').value            = '';
   document.getElementById('loginError').classList.remove('show');
   setTimeout(() => document.getElementById('loginPass').focus(), 100);
 }
 
-function tryLogin() {
-  const val = document.getElementById('loginPass').value;
-  if (val === PASSWORD) {
-    sessionStorage.setItem('fb_groom', '1');
+async function tryLogin() {
+  const password = document.getElementById('loginPass').value;
+  showLoading(true);
+  try {
+    await Parse.User.logIn(PARSE_USER, password);
     showApp();
-  } else {
+    await loadFromParse();
+  } catch(e) {
     document.getElementById('loginError').classList.add('show');
     document.getElementById('loginPass').value = '';
     document.getElementById('loginPass').focus();
   }
+  showLoading(false);
+}
+
+async function doLogout() {
+  await Parse.User.logOut();
+  S = { totalBudget: 0, items: [], openCats: {}, editId: null, configObjId: null };
+  showLogin();
 }
 
 document.getElementById('loginBtn').addEventListener('click', tryLogin);
@@ -1403,48 +1535,12 @@ document.getElementById('loginEye').addEventListener('click', () => {
   const p = document.getElementById('loginPass');
   p.type = p.type === 'password' ? 'text' : 'password';
 });
-document.getElementById('logoutBtn').addEventListener('click', showLogin);
+document.getElementById('logoutBtn').addEventListener('click', doLogout);
 
 // ─── INIT ──────────────────────────────────────────────────────────────────
-load();
-
-document.getElementById('totalBudget').value = S.totalBudget || '';
-
-// Seed sample data on first load
-if (!S.items.length) {
-  S.totalBudget = 2000000;
-  document.getElementById('totalBudget').value = 2000000;
-
-  const seed = [
-    { catId:'venue',        name:'Wedding Venue / Banquet Hall', vendor:'The Leela Palace',         estimated:0, actual:0, paid:false, notes:'' },
-    { catId:'rings',        name:'Engagement Ring',              vendor:'Tanishq',                  estimated:0, actual:0, paid:false, notes:'' },
-    { catId:'rings',        name:'Wedding Bands (×2)',           vendor:'PC Jeweller',              estimated:0, actual:0, paid:false, notes:'' },
-    { catId:'catering',     name:'Reception Dinner & Snacks',    vendor:'Gupta Caterers',           estimated:0, actual:0, paid:false, notes:'' },
-    { catId:'catering',     name:'Wedding Cake',                 vendor:'The Cake Studio',          estimated:0, actual:0, paid:false, notes:'' },
-    { catId:'photography',  name:'Photographer',                 vendor:'Candid Weddingz',          estimated:0, actual:0, paid:false, notes:'' },
-    { catId:'photography',  name:'Videographer',                 vendor:'Frame Perfect Studios',    estimated:0, actual:0, paid:false, notes:'' },
-    { catId:'flowers',      name:'Bridal Bouquet & Garlands',    vendor:'Phool Bagh Florists',      estimated:0, actual:0, paid:false, notes:'' },
-    { catId:'flowers',      name:'Stage & Mandap Décor',         vendor:'Dream Décor Co.',          estimated:0, actual:0, paid:false, notes:'' },
-    { catId:'attire',       name:'Bridal Lehenga',               vendor:'Sabyasachi',               estimated:0, actual:0, paid:false, notes:'' },
-    { catId:'attire',       name:'Groom Sherwani',               vendor:'Manyavar',                 estimated:0, actual:0, paid:false, notes:'' },
-    { catId:'invitations',  name:'E-Invites & Printing',         vendor:'Zola Studio',              estimated:0, actual:0, paid:false, notes:'' },
-    { catId:'honeymoon',    name:'Flights',                      vendor:'Air India / IndiGo',       estimated:0, actual:0, paid:false, notes:'' },
-    { catId:'honeymoon',    name:'Resort Stay',                  vendor:'Sun Siyam Iru Fushi',      estimated:0, actual:0, paid:false, notes:'' },
-    { catId:'beauty',       name:'Bridal Hair & Makeup',         vendor:'Meenakshi Dutt Makeovers', estimated:0, actual:0, paid:false, notes:'' },
-    { catId:'entertainment',name:'DJ & Sound System',            vendor:'DJ Suketu Events',         estimated:0, actual:0, paid:false, notes:'' },
-    { catId:'ceremony',       name:'Pandit & Ceremony Rituals',    vendor:'Local Purohit',            estimated:0, actual:0, paid:false, notes:'' },
-    { catId:'accommodation',  name:'Guest Accommodation',          vendor:'',                         estimated:0, actual:0, paid:false, notes:'' },
-  ];
-
-  seed.forEach(d => { d.id = uid(); S.items.push(d); });
-  S.openCats = { venue: true, rings: true, catering: true };
-}
-
-render();
-
-// Show login or app based on session
-if (isUnlocked()) {
+if (Parse.User.current()) {
   showApp();
+  loadFromParse();
 } else {
   showLogin();
 }
