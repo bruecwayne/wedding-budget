@@ -770,8 +770,8 @@ table.items tr:hover .row-actions { opacity: 1; }
 <!-- BUDGET BAR -->
 <div class="budget-bar">
   <label for="totalBudget">Total Wedding Budget</label>
-  <span class="budget-bar-symbol">$</span>
-  <input type="number" id="totalBudget" placeholder="50,000" min="0" step="100">
+  <span class="budget-bar-symbol">₹</span>
+  <input type="number" id="totalBudget" placeholder="20,00,000" min="0" step="1000">
 </div>
 
 <!-- MAIN -->
@@ -781,22 +781,22 @@ table.items tr:hover .row-actions { opacity: 1; }
   <div class="summary-grid" id="summGrid">
     <div class="summary-card c-budget">
       <div class="s-label">Total Budget</div>
-      <div class="s-value" id="sBudget">$0</div>
+      <div class="s-value" id="sBudget">₹0</div>
       <div class="s-sub">Set above</div>
     </div>
     <div class="summary-card c-est">
       <div class="s-label">Estimated</div>
-      <div class="s-value" id="sEst">$0</div>
+      <div class="s-value" id="sEst">₹0</div>
       <div class="s-sub">Planned total</div>
     </div>
     <div class="summary-card c-act">
       <div class="s-label">Actual</div>
-      <div class="s-value" id="sAct">$0</div>
+      <div class="s-value" id="sAct">₹0</div>
       <div class="s-sub">Confirmed spend</div>
     </div>
     <div class="summary-card" id="sBalCard">
       <div class="s-label">Remaining</div>
-      <div class="s-value" id="sBal">$0</div>
+      <div class="s-value" id="sBal">₹0</div>
       <div class="s-sub" id="sBalSub">Based on actual</div>
     </div>
   </div>
@@ -852,12 +852,12 @@ table.items tr:hover .row-actions { opacity: 1; }
           </select>
         </div>
         <div class="f-group">
-          <label class="f-label">Estimated Cost ($)</label>
-          <input type="number" class="f-input money" id="fEst" placeholder="0.00" min="0" step="0.01">
+          <label class="f-label">Estimated Cost (₹)</label>
+          <input type="number" class="f-input money" id="fEst" placeholder="0" min="0" step="1">
         </div>
         <div class="f-group">
-          <label class="f-label">Actual Cost ($)</label>
-          <input type="number" class="f-input money" id="fAct" placeholder="0.00" min="0" step="0.01">
+          <label class="f-label">Actual Cost (₹)</label>
+          <input type="number" class="f-input money" id="fAct" placeholder="0" min="0" step="1">
         </div>
         <div class="f-group span2">
           <label class="f-label">Notes</label>
@@ -916,7 +916,7 @@ function uid() {
 function fmt(n) {
   const v = parseFloat(n);
   if (!v && v !== 0) return '—';
-  return '$' + v.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  return '₹' + v.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 }
 
 function esc(s) {
@@ -1195,27 +1195,27 @@ document.getElementById('totalBudget').value = S.totalBudget || '';
 
 // Seed sample data on first load
 if (!S.items.length) {
-  S.totalBudget = 50000;
-  document.getElementById('totalBudget').value = 50000;
+  S.totalBudget = 2000000;
+  document.getElementById('totalBudget').value = 2000000;
 
   const seed = [
-    { catId:'venue',       name:'Reception Venue',         vendor:'The Grand Estate',         estimated:9000,  actual:8500,  paid:true,  notes:'Deposit of $2,500 paid. Balance due 60 days before.' },
-    { catId:'rings',       name:'Engagement Ring',         vendor:"Brilliant Earth",           estimated:5500,  actual:5200,  paid:true,  notes:'GIA certified diamond, platinum band' },
-    { catId:'rings',       name:'Wedding Bands (×2)',      vendor:'Local Goldsmith',           estimated:1200,  actual:0,     paid:false, notes:'Custom engraving included' },
-    { catId:'catering',    name:'Reception Dinner',        vendor:'Saveur Catering Co.',       estimated:13000, actual:0,     paid:false, notes:'Menu tasting booked for next month' },
-    { catId:'catering',    name:'Wedding Cake',            vendor:'Sugar Blossom Bakery',      estimated:800,   actual:750,   paid:true,  notes:'3-tier, lemon elderflower' },
-    { catId:'photography', name:'Photographer',            vendor:'Laura Chen Photography',    estimated:3800,  actual:3800,  paid:false, notes:'8-hour coverage + engagement shoot' },
-    { catId:'photography', name:'Videographer',            vendor:'Cinematic Moments',         estimated:2500,  actual:0,     paid:false, notes:'Highlight reel + full edit' },
-    { catId:'flowers',     name:'Bridal Bouquet & Party',  vendor:'Bloom & Wild Studio',       estimated:1800,  actual:0,     paid:false, notes:'' },
-    { catId:'flowers',     name:'Ceremony Arch & Décor',   vendor:'Bloom & Wild Studio',       estimated:1200,  actual:0,     paid:false, notes:'' },
-    { catId:'attire',      name:'Wedding Dress',           vendor:'Vera Wang Bridal',          estimated:3500,  actual:3200,  paid:true,  notes:'Alterations included' },
-    { catId:'attire',      name:'Groom Suit',              vendor:'The Black Tux',             estimated:600,   actual:580,   paid:true,  notes:'Rental' },
-    { catId:'invitations', name:'Save the Dates',          vendor:'Minted',                    estimated:250,   actual:230,   paid:true,  notes:'Sent 8 months out' },
-    { catId:'invitations', name:'Wedding Invitations',     vendor:'Minted',                    estimated:450,   actual:0,     paid:false, notes:'Send 8 weeks before date' },
-    { catId:'honeymoon',   name:'Flights',                 vendor:'Delta Airlines',            estimated:2800,  actual:2650,  paid:true,  notes:'Bali, round trip for two' },
-    { catId:'honeymoon',   name:'Hotel & Villa',           vendor:'Four Seasons Bali',         estimated:4500,  actual:0,     paid:false, notes:'7 nights booked' },
-    { catId:'beauty',      name:'Bridal Hair & Makeup',    vendor:'Glow Beauty Studio',        estimated:900,   actual:900,   paid:true,  notes:'Trial session included' },
-    { catId:'entertainment',name:'DJ & Sound',             vendor:'Nightbeat Events',          estimated:2200,  actual:0,     paid:false, notes:'5-hour set, cocktail hour + reception' },
+    { catId:'venue',       name:'Wedding Venue / Banquet Hall', vendor:'The Leela Palace',          estimated:500000, actual:450000, paid:true,  notes:'Advance of ₹1,50,000 paid. Balance due 30 days before.' },
+    { catId:'rings',       name:'Engagement Ring',              vendor:'Tanishq',                   estimated:150000, actual:145000, paid:true,  notes:'22K gold with solitaire diamond' },
+    { catId:'rings',       name:'Wedding Bands (×2)',           vendor:'PC Jeweller',               estimated:60000,  actual:0,      paid:false, notes:'Custom engraving included' },
+    { catId:'catering',    name:'Reception Dinner & Snacks',    vendor:'Gupta Caterers',            estimated:400000, actual:0,      paid:false, notes:'Menu tasting booked for next month' },
+    { catId:'catering',    name:'Wedding Cake',                 vendor:'The Cake Studio',           estimated:15000,  actual:12000,  paid:true,  notes:'3-tier, red velvet & mango' },
+    { catId:'photography', name:'Photographer',                 vendor:'Candid Weddingz',           estimated:80000,  actual:80000,  paid:false, notes:'Full day coverage + pre-wedding shoot' },
+    { catId:'photography', name:'Videographer',                 vendor:'Frame Perfect Studios',     estimated:60000,  actual:0,      paid:false, notes:'Highlight reel + full cinematic edit' },
+    { catId:'flowers',     name:'Bridal Bouquet & Garlands',    vendor:'Phool Bagh Florists',       estimated:40000,  actual:0,      paid:false, notes:'' },
+    { catId:'flowers',     name:'Stage & Mandap Décor',         vendor:'Dream Décor Co.',           estimated:75000,  actual:0,      paid:false, notes:'' },
+    { catId:'attire',      name:'Bridal Lehenga',               vendor:'Sabyasachi',                estimated:200000, actual:185000, paid:true,  notes:'Includes dupatta & blouse' },
+    { catId:'attire',      name:'Groom Sherwani',               vendor:'Manyavar',                  estimated:30000,  actual:28000,  paid:true,  notes:'Includes accessories' },
+    { catId:'invitations', name:'E-Invites & Printing',         vendor:'Zola Studio',               estimated:8000,   actual:7500,   paid:true,  notes:'100 printed + digital for WhatsApp' },
+    { catId:'honeymoon',   name:'Flights',                      vendor:'Air India / IndiGo',        estimated:80000,  actual:72000,  paid:true,  notes:'Maldives, round trip for two' },
+    { catId:'honeymoon',   name:'Resort Stay',                  vendor:'Sun Siyam Iru Fushi',       estimated:150000, actual:0,      paid:false, notes:'7 nights water villa booked' },
+    { catId:'beauty',      name:'Bridal Hair & Makeup',         vendor:'Meenakshi Dutt Makeovers',  estimated:35000,  actual:35000,  paid:true,  notes:'Trial session + wedding day' },
+    { catId:'entertainment',name:'DJ & Sound System',           vendor:'DJ Suketu Events',          estimated:50000,  actual:0,      paid:false, notes:'Full night set, cocktail + reception' },
+    { catId:'ceremony',    name:'Pandit & Ceremony Rituals',    vendor:'Local Purohit',             estimated:15000,  actual:0,      paid:false, notes:'Includes samagri & pooja items' },
   ];
 
   seed.forEach(d => { d.id = uid(); S.items.push(d); });
