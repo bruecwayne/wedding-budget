@@ -1089,14 +1089,14 @@ table.items tr:hover .row-actions { opacity: 1; }
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
-<script src="https://unpkg.com/parse/dist/parse.min.js"></script>
+<script src="https://unpkg.com/parse@4.3.1/dist/parse.min.js"></script>
 <script>
 // ─── PARSE / BACK4APP CONFIG ────────────────────────────────────────────────
-const B4A_APP_ID  = 'YOUR_BACK4APP_APP_ID';   // ← fill in after Back4App setup
-const B4A_JS_KEY  = 'YOUR_BACK4APP_JS_KEY';   // ← fill in after Back4App setup
+const B4A_APP_ID  = 'gWTr2FiMcBw6WciEgUKLrJ7dKf9LsE3YqyO0L0Pj';
+const B4A_JS_KEY  = 'WY3f10jj0DObstLEuBGT7PSn7GwpuLwYAWxif8Gx';
 const PARSE_USER  = 'groom';                   // Parse username for this page
 Parse.initialize(B4A_APP_ID, B4A_JS_KEY);
-Parse.serverURL   = 'https://parseapi.back4app.com/';
+Parse.serverURL   = 'https://parseapi.back4app.com';
 
 // ─── CATEGORIES ────────────────────────────────────────────────────────────
 const CATS = [
