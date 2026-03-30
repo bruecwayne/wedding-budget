@@ -889,6 +889,70 @@ table.items tr:hover .row-actions { opacity: 1; }
   letter-spacing: 0.02em;
 }
 
+/* ── VIEW TABS ──────────────────────────── */
+.view-tabs {
+  display: flex;
+  gap: 0.35rem;
+  margin-bottom: 1.75rem;
+  background: var(--cream-dark);
+  border-radius: var(--radius);
+  padding: 0.3rem;
+}
+.view-tab {
+  flex: 1;
+  padding: 0.6rem 1rem;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: 'Lato', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--charcoal-soft);
+  cursor: pointer;
+  transition: var(--transition);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.view-tab.active {
+  background: var(--white);
+  color: var(--rose-gold);
+  font-weight: 700;
+  box-shadow: var(--shadow-sm);
+}
+
+/* ── DASHBOARD ───────────────────────────── */
+.chart-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+.chart-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+}
+.chart-card.chart-wide { grid-column: 1 / -1; }
+.chart-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--charcoal);
+  margin-bottom: 1.25rem;
+  letter-spacing: 0.01em;
+}
+.chart-empty {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: var(--charcoal-soft);
+  opacity: 0.5;
+  font-size: 0.85rem;
+}
+@media (max-width: 600px) {
+  .chart-grid { grid-template-columns: 1fr; }
+  .chart-card.chart-wide { grid-column: 1; }
+}
+
 /* ── HEADER BTNS ────────────────────────── */
 .header-actions {
   position: absolute;
@@ -996,6 +1060,15 @@ table.items tr:hover .row-actions { opacity: 1; }
 <!-- MAIN -->
 <div class="container" style="display:none">
 
+  <!-- View Tabs -->
+  <div class="view-tabs">
+    <button class="view-tab active" id="tabBudget">📋 Budget</button>
+    <button class="view-tab" id="tabDashboard">📊 Dashboard</button>
+  </div>
+
+  <!-- Budget View -->
+  <div id="budgetView">
+
   <!-- Summary -->
   <div class="summary-grid" id="summGrid">
     <div class="summary-card c-budget">
@@ -1037,6 +1110,30 @@ table.items tr:hover .row-actions { opacity: 1; }
   </div>
 
   <div class="cats" id="catsList"></div>
+
+  </div><!-- /budgetView -->
+
+  <!-- Dashboard View -->
+  <div id="dashboardView" style="display:none">
+    <div class="chart-grid">
+      <div class="chart-card chart-wide">
+        <div class="chart-title">Estimated vs Actual by Category</div>
+        <canvas id="chartBar"></canvas>
+        <div class="chart-empty" id="chartBarEmpty" style="display:none">No data yet — add items with costs to see this chart.</div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Budget Allocation</div>
+        <canvas id="chartDonut"></canvas>
+        <div class="chart-empty" id="chartDonutEmpty" style="display:none">Add estimated costs to see allocation.</div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Payment Status</div>
+        <canvas id="chartPaid"></canvas>
+        <div class="chart-empty" id="chartPaidEmpty" style="display:none">No items yet.</div>
+      </div>
+    </div>
+  </div><!-- /dashboardView -->
+
 </div>
 
 <!-- FAB -->
@@ -1125,6 +1222,7 @@ table.items tr:hover .row-actions { opacity: 1; }
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script src="https://unpkg.com/parse@4.3.1/dist/parse.min.js"></script>
 <script>
 // ─── PARSE / BACK4APP CONFIG ────────────────────────────────────────────────
@@ -1244,6 +1342,104 @@ async function saveConfig() {
 }
 
 let configTimer;
+let chartBar = null, chartDonut = null, chartPaid = null;
+
+// ─── DASHBOARD ──────────────────────────────────────────────────────────────
+function renderDashboard() {
+  const activeCats = CATS.filter(c =>
+    S.items.some(i => i.catId === c.id && ((+i.estimated) > 0 || (+i.actual) > 0))
+  );
+
+  const labels    = activeCats.map(c => c.name);
+  const estimated = activeCats.map(c => S.items.filter(i => i.catId === c.id).reduce((a, i) => a + (+i.estimated || 0), 0));
+  const actual    = activeCats.map(c => S.items.filter(i => i.catId === c.id).reduce((a, i) => a + (+i.actual    || 0), 0));
+  const colors    = activeCats.map(c => c.color);
+
+  const fmtTick = v => v >= 100000 ? '₹' + (v / 100000).toFixed(1) + 'L' : v >= 1000 ? '₹' + (v / 1000).toFixed(0) + 'k' : '₹' + v;
+  const fmtTip  = v => '₹' + Number(v).toLocaleString('en-IN');
+  const chartFont = { family: 'Lato', size: 12 };
+
+  // ── Bar: Estimated vs Actual ─────────────────────────────────────────────
+  const barEmpty = activeCats.length === 0;
+  document.getElementById('chartBarEmpty').style.display = barEmpty ? '' : 'none';
+  document.getElementById('chartBar').style.display      = barEmpty ? 'none' : '';
+  if (chartBar) { chartBar.destroy(); chartBar = null; }
+  if (!barEmpty) {
+    chartBar = new Chart(document.getElementById('chartBar'), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          { label: 'Estimated', data: estimated, backgroundColor: colors.map(c => c + '55'), borderColor: colors, borderWidth: 1.5, borderRadius: 5 },
+          { label: 'Actual',    data: actual,    backgroundColor: colors,                    borderRadius: 5 }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { labels: { font: chartFont, boxWidth: 12, padding: 16 } },
+          tooltip: { callbacks: { label: ctx => ' ' + fmtTip(ctx.raw) } }
+        },
+        scales: {
+          y: { ticks: { callback: fmtTick, font: chartFont }, grid: { color: 'rgba(0,0,0,0.04)' } },
+          x: { ticks: { font: { family: 'Lato', size: 11 }, maxRotation: 40 }, grid: { display: false } }
+        }
+      }
+    });
+  }
+
+  // ── Donut: Budget Allocation ─────────────────────────────────────────────
+  const donutCats   = activeCats.filter((_, i) => estimated[i] > 0);
+  const donutData   = donutCats.map((_, i) => estimated[activeCats.indexOf(donutCats[i])]);
+  const donutColors = donutCats.map(c => c.color);
+  const donutEmpty  = donutCats.length === 0;
+  document.getElementById('chartDonutEmpty').style.display = donutEmpty ? '' : 'none';
+  document.getElementById('chartDonut').style.display      = donutEmpty ? 'none' : '';
+  if (chartDonut) { chartDonut.destroy(); chartDonut = null; }
+  if (!donutEmpty) {
+    const total = donutData.reduce((a, b) => a + b, 0);
+    chartDonut = new Chart(document.getElementById('chartDonut'), {
+      type: 'doughnut',
+      data: {
+        labels: donutCats.map(c => c.name),
+        datasets: [{ data: donutData, backgroundColor: donutColors, borderWidth: 2, borderColor: '#FAF6F0', hoverOffset: 8 }]
+      },
+      options: {
+        responsive: true,
+        cutout: '62%',
+        plugins: {
+          legend: { position: 'bottom', labels: { font: { family: 'Lato', size: 11 }, boxWidth: 12, padding: 8 } },
+          tooltip: { callbacks: { label: ctx => ' ' + fmtTip(ctx.raw) + ' (' + Math.round(ctx.raw / total * 100) + '%)' } }
+        }
+      }
+    });
+  }
+
+  // ── Doughnut: Payment Status ─────────────────────────────────────────────
+  const paidAmt    = S.items.filter(i =>  i.paid).reduce((a, i) => a + (+i.actual || +i.estimated || 0), 0);
+  const pendingAmt = S.items.filter(i => !i.paid).reduce((a, i) => a + (+i.actual || +i.estimated || 0), 0);
+  const paidEmpty  = paidAmt === 0 && pendingAmt === 0;
+  document.getElementById('chartPaidEmpty').style.display = paidEmpty ? '' : 'none';
+  document.getElementById('chartPaid').style.display      = paidEmpty ? 'none' : '';
+  if (chartPaid) { chartPaid.destroy(); chartPaid = null; }
+  if (!paidEmpty) {
+    chartPaid = new Chart(document.getElementById('chartPaid'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Paid', 'Pending'],
+        datasets: [{ data: [paidAmt, pendingAmt], backgroundColor: ['#6B9E78', '#C9A84C'], borderWidth: 2, borderColor: '#FAF6F0', hoverOffset: 8 }]
+      },
+      options: {
+        responsive: true,
+        cutout: '62%',
+        plugins: {
+          legend: { position: 'bottom', labels: { font: chartFont, boxWidth: 12, padding: 10 } },
+          tooltip: { callbacks: { label: ctx => ' ' + fmtTip(ctx.raw) } }
+        }
+      }
+    });
+  }
+}
 function debouncedSaveConfig() {
   clearTimeout(configTimer);
   configTimer = setTimeout(() => saveConfig(), 800);
@@ -1672,6 +1868,21 @@ document.getElementById('cpOverlay').addEventListener('click', e => {
 });
 document.getElementById('cpConfirm').addEventListener('keydown', e => {
   if (e.key === 'Enter') submitChangePw();
+});
+
+// ─── TAB SWITCHING ──────────────────────────────────────────────────────────
+document.getElementById('tabBudget').addEventListener('click', () => {
+  document.getElementById('budgetView').style.display   = '';
+  document.getElementById('dashboardView').style.display = 'none';
+  document.getElementById('tabBudget').classList.add('active');
+  document.getElementById('tabDashboard').classList.remove('active');
+});
+document.getElementById('tabDashboard').addEventListener('click', () => {
+  document.getElementById('budgetView').style.display   = 'none';
+  document.getElementById('dashboardView').style.display = '';
+  document.getElementById('tabBudget').classList.remove('active');
+  document.getElementById('tabDashboard').classList.add('active');
+  renderDashboard();
 });
 
 document.getElementById('loginBtn').addEventListener('click', tryLogin);
