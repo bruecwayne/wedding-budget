@@ -1155,6 +1155,7 @@ const CATS = [
 
 // ─── STATE ──────────────────────────────────────────────────────────────────
 let S = { totalBudget: 0, items: [], openCats: {}, editId: null, configObjId: null };
+const LS_BUDGET_KEY = `fb_${PARSE_USER}_budget`;
 
 // ─── FORMATTERS ────────────────────────────────────────────────────────────
 function fmt(n) {
@@ -1201,6 +1202,17 @@ async function loadFromParse() {
       notes:     p.get('notes')     || '',
     }));
 
+    // Restore any unsaved budget value from before a refresh
+    const lsBudget = localStorage.getItem(LS_BUDGET_KEY);
+    if (lsBudget !== null) {
+      const lsVal = parseFloat(lsBudget) || 0;
+      if (lsVal !== S.totalBudget) {
+        S.totalBudget = lsVal;
+        await saveConfig();
+      }
+      localStorage.removeItem(LS_BUDGET_KEY);
+    }
+
     document.getElementById('totalBudget').value = S.totalBudget || '';
 
     if (S.items.length === 0) await seedData();
@@ -1227,6 +1239,7 @@ async function saveConfig() {
     config.set('openCats',    S.openCats);
     await config.save();
     S.configObjId = config.id;
+    localStorage.removeItem(LS_BUDGET_KEY);
   } catch(e) { console.error('Config save error:', e); }
 }
 
@@ -1543,6 +1556,7 @@ function toast(msg) {
 // ─── EVENTS ────────────────────────────────────────────────────────────────
 document.getElementById('totalBudget').addEventListener('input', e => {
   S.totalBudget = parseFloat(e.target.value) || 0;
+  localStorage.setItem(LS_BUDGET_KEY, S.totalBudget);
   renderSummary();
   debouncedSaveConfig();
 });
