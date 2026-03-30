@@ -161,7 +161,7 @@ h1 em {
   border-bottom: 2px solid var(--rose-gold);
   padding: 0.15rem 0.5rem;
   background: transparent;
-  width: 140px;
+  width: clamp(100px, 28vw, 140px);
   text-align: center;
   outline: none;
   transition: border-color var(--transition);
@@ -983,13 +983,86 @@ table.items tr:hover .row-actions { opacity: 1; }
 }
 
 /* ── RESPONSIVE ─────────────────────────── */
+
+/* Tablet */
 @media (max-width: 580px) {
-  .container { padding: 1.25rem 1rem 5rem; }
-  .cat-amounts { gap: 0.75rem; }
-  .hide-sm { display: none !important; }
-  .row-actions { opacity: 1; }
-  .f-grid { grid-template-columns: 1fr; }
-  .f-group.span2 { grid-column: 1; }
+  /* Layout */
+  .header          { padding: 1.6rem 1rem 2.25rem; }
+  .header-actions  { top: 0.6rem; right: 0.75rem; gap: 0.35rem; }
+  .logout-btn      { padding: 0.3rem 0.65rem; font-size: 0.65rem; }
+
+  .budget-bar      { padding: 0.85rem 1rem; gap: 0.5rem; flex-wrap: wrap; justify-content: center; }
+  .budget-bar label{ font-size: 0.68rem; width: 100%; text-align: center; }
+  #totalBudget     { font-size: 1.3rem; }
+
+  .container       { padding: 1.1rem 0.85rem 6rem; }
+
+  /* Summary cards */
+  .summary-grid    { grid-template-columns: 1fr 1fr; gap: 0.65rem; }
+  .summary-card    { padding: 1rem 0.85rem; }
+  .s-label         { font-size: 0.6rem; }
+  .s-value         { font-size: 1.55rem; }
+  .s-sub           { font-size: 0.68rem; }
+
+  /* Progress */
+  .progress-section { padding: 0.9rem 1rem; }
+
+  /* View tabs */
+  .view-tabs       { margin-bottom: 1.25rem; }
+  .view-tab        { padding: 0.55rem 0.5rem; font-size: 0.72rem; letter-spacing: 0.05em; }
+
+  /* Categories */
+  .cat-amounts     { gap: 0.65rem; }
+  .hide-sm         { display: none !important; }
+  .row-actions     { opacity: 1; }
+
+  /* Touch-friendly buttons */
+  .btn-ic          { width: 38px; height: 38px; font-size: 1rem; border-radius: 8px; }
+  .btn-add-item    { padding: 0.7rem 1rem; font-size: 0.78rem; min-height: 42px; }
+  .badge           { padding: 0.35rem 0.7rem; font-size: 0.7rem; min-height: 30px; }
+
+  /* FAB & toast */
+  .fab             { bottom: 1.1rem; right: 1.1rem; width: 52px; height: 52px; font-size: 1.4rem; }
+  .toast           { bottom: 4.75rem; font-size: 0.8rem; max-width: 88vw; text-align: center; }
+
+  /* Modal */
+  .overlay         { padding: 0.75rem; align-items: flex-end; }
+  .modal           { border-radius: var(--radius) var(--radius) 0 0; max-height: 92vh; }
+  .m-head          { padding: 1rem 1.1rem 0.75rem; }
+  .m-body          { padding: 0.9rem 1.1rem 1.25rem; }
+  .m-close         { width: 38px; height: 38px; }
+  .f-grid          { grid-template-columns: 1fr; }
+  .f-group.span2   { grid-column: 1; }
+  .f-input, .f-select { font-size: 1rem; padding: 0.7rem 0.85rem; } /* Prevent zoom on iOS */
+
+  /* Login */
+  .login-card      { padding: 1.75rem 1.25rem 1.5rem; width: calc(100vw - 2rem); }
+  .login-title     { font-size: 1.9rem; }
+  .login-pass      { font-size: 1rem; padding: 0.7rem 2.8rem 0.7rem 0.85rem; }
+  .login-btn       { padding: 0.8rem; font-size: 0.82rem; min-height: 44px; }
+
+  /* Charts */
+  .chart-grid      { grid-template-columns: 1fr; }
+  .chart-card.chart-wide { grid-column: 1; }
+  .chart-card      { padding: 1.1rem; }
+
+  /* Table */
+  table.items      { font-size: 0.8rem; }
+  table.items th, table.items td { padding: 0.55rem 0.4rem; }
+}
+
+/* Small phones (≤ 400px) */
+@media (max-width: 400px) {
+  .header          { padding: 1.35rem 0.75rem 2rem; }
+  .summary-grid    { grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+  .summary-card    { padding: 0.85rem 0.7rem; }
+  .s-value         { font-size: 1.3rem; }
+  #totalBudget     { font-size: 1.1rem; }
+  .view-tab        { font-size: 0.65rem; letter-spacing: 0.02em; }
+  .cat-name        { font-size: 0.82rem; }
+  table.items      { font-size: 0.75rem; }
+  table.items th, table.items td { padding: 0.45rem 0.3rem; }
+  .login-card      { padding: 1.5rem 1rem 1.25rem; }
 }
 </style>
 </head>
