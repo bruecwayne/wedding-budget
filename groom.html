@@ -967,6 +967,94 @@ table.items tr:hover .row-actions { opacity: 1; }
   .chart-card.chart-wide { grid-column: 1; }
 }
 
+/* ── SETTINGS ───────────────────────────── */
+.settings-modal { max-width: 500px; }
+
+.settings-section { margin-bottom: 1.5rem; }
+.settings-section-title {
+  font-size: 0.65rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--charcoal-soft);
+  opacity: 0.55;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--cream-dark);
+  font-weight: 500;
+}
+
+.cat-setting-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.4rem;
+  border-radius: var(--radius-sm);
+  transition: background var(--transition);
+}
+.cat-setting-row:hover { background: var(--cream); }
+
+.cat-color-swatch {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.cat-setting-icon { font-size: 1rem; width: 1.5rem; text-align: center; flex-shrink: 0; }
+.cat-setting-name { flex: 1; font-size: 0.88rem; }
+.cat-item-count   { font-size: 0.7rem; color: var(--charcoal-soft); opacity: 0.45; flex-shrink: 0; }
+.cat-setting-acts { display: flex; gap: 0.25rem; flex-shrink: 0; }
+
+.cat-edit-row {
+  background: var(--cream);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.5rem;
+  margin: 0.2rem 0;
+  display: flex;
+  gap: 0.45rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.cat-edit-icon  { width: 3rem; text-align: center; font-size: 1.1rem; flex-shrink: 0; }
+.cat-edit-name  { flex: 1; min-width: 110px; }
+.cat-color-pick {
+  width: 34px; height: 34px;
+  border: 1px solid var(--cream-dark);
+  border-radius: var(--radius-sm);
+  cursor: pointer; padding: 2px;
+  background: none; flex-shrink: 0;
+}
+.cat-edit-btns  { display: flex; gap: 0.35rem; }
+
+.add-cat-section {
+  margin-top: 0.9rem;
+  padding-top: 0.9rem;
+  border-top: 1px dashed var(--cream-dark);
+}
+.add-cat-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--charcoal-soft);
+  opacity: 0.55;
+  margin-bottom: 0.6rem;
+  font-weight: 500;
+}
+.add-cat-row {
+  display: flex;
+  gap: 0.45rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 0.6rem;
+}
+.add-cat-icon  { width: 3rem; text-align: center; font-size: 1.1rem; flex-shrink: 0; }
+.add-cat-name  { flex: 1; min-width: 130px; }
+.add-cat-color {
+  width: 34px; height: 34px;
+  border: 1px solid var(--cream-dark);
+  border-radius: var(--radius-sm);
+  cursor: pointer; padding: 2px;
+  background: none; flex-shrink: 0;
+}
+
 /* ── HEADER BTNS ────────────────────────── */
 .header-actions {
   position: absolute;
@@ -1132,6 +1220,7 @@ table.items tr:hover .row-actions { opacity: 1; }
   <h1><em>Forever</em> Budget</h1>
   <p class="header-sub">Groom's Wedding Planner</p>
   <div class="header-actions">
+    <button class="logout-btn" id="settingsBtn" title="Settings">⚙ Settings</button>
     <button class="logout-btn" id="changePwBtn" title="Change password">🔑 Password</button>
     <button class="logout-btn" id="logoutBtn" title="Logout">🔒 Logout</button>
   </div>
@@ -1306,6 +1395,36 @@ table.items tr:hover .row-actions { opacity: 1; }
   </div>
 </div>
 
+<!-- SETTINGS OVERLAY -->
+<div class="overlay" id="settingsOverlay" style="display:none">
+  <div class="modal settings-modal">
+    <div class="m-head">
+      <h3 class="m-title">Settings</h3>
+      <button class="m-close" id="settingsClose">✕</button>
+    </div>
+    <div class="m-body">
+
+      <!-- Categories -->
+      <div class="settings-section">
+        <div class="settings-section-title">Budget Categories</div>
+        <div id="settingsCatList"></div>
+
+        <!-- Add new category -->
+        <div class="add-cat-section">
+          <div class="add-cat-label">Add New Category</div>
+          <div class="add-cat-row">
+            <input type="text" class="f-input add-cat-icon" id="newCatIcon" placeholder="🎁" maxlength="4">
+            <input type="text" class="f-input add-cat-name" id="newCatName" placeholder="Category name">
+            <input type="color" class="add-cat-color" id="newCatColor" value="#C4956A">
+          </div>
+          <button class="btn-save" id="addCatBtn" style="width:100%">＋ Add Category</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
@@ -1320,7 +1439,7 @@ Parse.initialize(B4A_APP_ID, B4A_JS_KEY);
 Parse.serverURL   = 'https://parseapi.back4app.com';
 
 // ─── CATEGORIES ────────────────────────────────────────────────────────────
-const CATS = [
+let CATS = [
   { id:'venue',         name:'Venue',                 icon:'🏛️',  color:'#C4956A' },
   { id:'catering',      name:'Catering & Bar',         icon:'🍽️',  color:'#8A9E7E' },
   { id:'flowers',       name:'Flowers & Décor',        icon:'🌸',  color:'#D4A0A0' },
@@ -1337,6 +1456,8 @@ const CATS = [
   { id:'accommodation', name:'Accommodation',          icon:'🏨',  color:'#7E9EBA' },
   { id:'other',         name:'Other',                  icon:'📦',  color:'#A0A0A0' },
 ];
+
+const DEFAULT_CATS = CATS.map(c => ({...c})); // snapshot for reset
 
 // ─── STATE ──────────────────────────────────────────────────────────────────
 let S = { totalBudget: 0, items: [], openCats: {}, editId: null, configObjId: null };
@@ -1368,6 +1489,8 @@ async function loadFromParse() {
       S.totalBudget   = c.get('totalBudget') || 0;
       S.openCats      = c.get('openCats')    || {};
       S.configObjId   = c.id;
+      const saved = c.get('customCats');
+      if (Array.isArray(saved) && saved.length > 0) CATS = saved;
     } else {
       await saveConfig();
     }
@@ -1430,6 +1553,119 @@ async function saveConfig() {
 
 let configTimer;
 let chartBar = null, chartDonut = null, chartPaid = null;
+
+// ─── SAVE CATEGORIES ────────────────────────────────────────────────────────
+async function saveCategories() {
+  try {
+    const BudgetConfig = Parse.Object.extend('BudgetConfig');
+    let config;
+    if (S.configObjId) {
+      config = await new Parse.Query('BudgetConfig').get(S.configObjId);
+    } else {
+      config = new BudgetConfig();
+      config.setACL(new Parse.ACL(Parse.User.current()));
+    }
+    config.set('customCats', CATS);
+    await config.save();
+    S.configObjId = config.id;
+  } catch(e) { console.error('Category save error:', e); toast('⚠ Failed to save categories.'); }
+}
+
+// ─── SETTINGS ───────────────────────────────────────────────────────────────
+function openSettings() {
+  renderSettingsCats();
+  document.getElementById('newCatIcon').value  = '';
+  document.getElementById('newCatName').value  = '';
+  document.getElementById('newCatColor').value = '#C4956A';
+  document.getElementById('settingsOverlay').style.display = 'flex';
+}
+function closeSettings() {
+  document.getElementById('settingsOverlay').style.display = 'none';
+}
+
+function renderSettingsCats() {
+  const list = document.getElementById('settingsCatList');
+  list.innerHTML = CATS.map(cat => {
+    const count = S.items.filter(i => i.catId === cat.id).length;
+    const canDel = count === 0 && CATS.length > 1;
+    return `
+      <div class="cat-setting-row" id="csrow-${cat.id}">
+        <div class="cat-color-swatch" style="background:${cat.color}"></div>
+        <span class="cat-setting-icon">${cat.icon}</span>
+        <span class="cat-setting-name">${esc(cat.name)}</span>
+        <span class="cat-item-count">${count ? count + ' item' + (count !== 1 ? 's' : '') : ''}</span>
+        <div class="cat-setting-acts">
+          <button class="btn-ic btn-edit" onclick="openEditCat('${cat.id}')" title="Edit">✏</button>
+          <button class="btn-ic del btn-del" onclick="deleteCat('${cat.id}')" title="${canDel ? 'Delete' : count ? 'Has items' : 'Last category'}" ${canDel ? '' : 'disabled style="opacity:0.3"'}>✕</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function openEditCat(id) {
+  const cat = CATS.find(c => c.id === id);
+  if (!cat) return;
+  document.getElementById('csrow-' + id).outerHTML = `
+    <div class="cat-edit-row" id="csrow-${id}">
+      <input type="text" class="f-input cat-edit-icon" id="eci-${id}" value="${cat.icon}" maxlength="4">
+      <input type="text" class="f-input cat-edit-name" id="ecn-${id}" value="${esc(cat.name)}" placeholder="Category name">
+      <input type="color" class="cat-color-pick" id="ecc-${id}" value="${cat.color}">
+      <div class="cat-edit-btns">
+        <button class="btn-save" style="padding:0.4rem 0.75rem;font-size:0.78rem" onclick="saveEditCat('${id}')">Save</button>
+        <button class="btn-cancel" style="padding:0.4rem 0.75rem;font-size:0.78rem" onclick="renderSettingsCats()">✕</button>
+      </div>
+    </div>`;
+  document.getElementById('ecn-' + id).focus();
+}
+
+async function saveEditCat(id) {
+  const icon  = document.getElementById('eci-' + id).value.trim() || '📦';
+  const name  = document.getElementById('ecn-' + id).value.trim();
+  const color = document.getElementById('ecc-' + id).value;
+  if (!name) { document.getElementById('ecn-' + id).focus(); return; }
+  const cat = CATS.find(c => c.id === id);
+  if (!cat) return;
+  cat.icon = icon; cat.name = name; cat.color = color;
+  showLoading(true);
+  await saveCategories();
+  showLoading(false);
+  renderSettingsCats();
+  render();
+  toast('Category updated ✓');
+}
+
+async function deleteCat(id) {
+  const count = S.items.filter(i => i.catId === id).length;
+  if (count > 0) { toast('⚠ Move or delete items in this category first.'); return; }
+  if (CATS.length <= 1) { toast('⚠ Must keep at least one category.'); return; }
+  CATS = CATS.filter(c => c.id !== id);
+  showLoading(true);
+  await saveCategories();
+  showLoading(false);
+  renderSettingsCats();
+  render();
+  toast('Category removed ✓');
+}
+
+async function addCat() {
+  const icon  = document.getElementById('newCatIcon').value.trim() || '📦';
+  const name  = document.getElementById('newCatName').value.trim();
+  const color = document.getElementById('newCatColor').value;
+  if (!name) { document.getElementById('newCatName').focus(); return; }
+  if (CATS.some(c => c.name.toLowerCase() === name.toLowerCase())) {
+    toast('⚠ A category with that name already exists.'); return;
+  }
+  CATS.push({ id: 'cat_' + Date.now(), name, icon, color });
+  showLoading(true);
+  await saveCategories();
+  showLoading(false);
+  document.getElementById('newCatIcon').value  = '';
+  document.getElementById('newCatName').value  = '';
+  document.getElementById('newCatColor').value = '#C4956A';
+  renderSettingsCats();
+  render();
+  toast('Category added ✓');
+}
 
 // ─── DASHBOARD ──────────────────────────────────────────────────────────────
 function renderDashboard() {
@@ -1971,6 +2207,14 @@ document.getElementById('tabDashboard').addEventListener('click', () => {
   document.getElementById('tabDashboard').classList.add('active');
   renderDashboard();
 });
+
+document.getElementById('settingsBtn').addEventListener('click', openSettings);
+document.getElementById('settingsClose').addEventListener('click', closeSettings);
+document.getElementById('settingsOverlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('settingsOverlay')) closeSettings();
+});
+document.getElementById('addCatBtn').addEventListener('click', addCat);
+document.getElementById('newCatName').addEventListener('keydown', e => { if (e.key === 'Enter') addCat(); });
 
 document.getElementById('loginBtn').addEventListener('click', tryLogin);
 document.getElementById('loginPass').addEventListener('keydown', e => {
